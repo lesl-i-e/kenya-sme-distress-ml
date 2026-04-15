@@ -1,0 +1,5 @@
+Model,ROC-AUC,F1-macro,F1-Stable,F1-Moderate,F1-HighRisk,Notes
+Logistic Regression (baseline),0.9507,0.7824,0.9115,0.8005,0.6352,"3-class multinomial, SMOTE"
+Random Forest,1.0,0.997,1.0,0.9985,0.9924,"300 trees, class_weight balanced"
+XGBoost (initial),1.0,0.9985,1.0,0.9993,0.9962,"multi:softprob, SMOTE"
+XGBoost (tuned) ★,1.0,0.9985,1.0,0.9993,0.9962,"RandomizedSearchCV, 5-fold CV"
