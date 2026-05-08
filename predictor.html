@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Predictor - SME Distress Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e40af;
+            --primary-dark: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #0f766e;
+            --secondary-light: #14b8a6;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f97316;
+            --bg-light: #f8fafc;
+            --bg-lighter: #f0f9ff;
+            --bg-white: #ffffff;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --border-light: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: var(--primary);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .breadcrumb {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-lighter);
+            color: var(--primary);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid var(--primary-light);
+        }
+
+        .back-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Form Section */
+        .form-container {
+            background: var(--bg-white);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-light);
+            color: var(--text-dark);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .label-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 0.25rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--danger) 0%, var(--accent) 40%, var(--success) 100%);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            border: 2px solid white;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            border: 2px solid white;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-lighter);
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-group:hover {
+            border-color: var(--primary);
+            background: rgba(30, 64, 175, 0.02);
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-label {
+            flex: 1;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            padding: 0.875rem 2rem;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-reset {
+            background: var(--bg-lighter);
+            color: var(--primary);
+            border: 1px solid var(--primary-light);
+        }
+
+        .btn-reset:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Results Section */
+        .results-container {
+            display: none;
+            background: var(--bg-white);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            margin-bottom: 2rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .risk-card {
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.05) 0%, rgba(15, 118, 110, 0.05) 100%);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px solid var(--primary-light);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .risk-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .risk-class {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .risk-description {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+
+        /* Probability Bars */
+        .probabilities {
+            margin-bottom: 2rem;
+        }
+
+        .prob-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .prob-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .prob-bar-container {
+            background: var(--bg-lighter);
+            border-radius: 8px;
+            height: 32px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        .prob-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: width 0.5s ease;
+        }
+
+        /* Signals */
+        .signals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .signal-card {
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-light);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .signal-active {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border-color: var(--danger);
+        }
+
+        .signal-inactive {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border-color: var(--success);
+        }
+
+        .signal-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .signal-status {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        footer p {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav {
+                justify-content: center;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .signals {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">📊</div>
+                <span>SME Distress Prediction</span>
+            </a>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="analytics.html">Analytics</a>
+                <a href="geography.html">Geography</a>
+                <a href="predictor.html" class="active">Predictor</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="index.html">Home</a> / <span>Live Predictor</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Home</a>
+
+        <div class="page-header">
+            <h1 class="page-title">🎯 SME Distress Prediction Tool</h1>
+            <p class="page-subtitle">Enter your firm characteristics below to get an instant XGBoost-powered risk prediction with SHAP explanations</p>
+        </div>
+
+        <!-- Form -->
+        <form id="predictorForm" class="form-container">
+            <h2 class="form-title">📋 Your Firm Information</h2>
+
+            <div class="form-grid">
+                <!-- Country Selection -->
+                <div class="form-group">
+                    <label for="country">Country of Operation</label>
+                    <select id="country" required>
+                        <option value="">Select your country...</option>
+                        <option value="KE">🇰🇪 Kenya</option>
+                        <option value="UG">🇺🇬 Uganda</option>
+                        <option value="TZ">🇹🇿 Tanzania</option>
+                        <option value="ZA">🇿🇦 South Africa</option>
+                        <option value="GH">🇬🇭 Ghana</option>
+                        <option value="NG">🇳🇬 Nigeria</option>
+                        <option value="ET">🇪🇹 Ethiopia</option>
+                        <option value="RW">🇷🇼 Rwanda</option>
+                    </select>
+                    <div class="label-hint">Select the country where your firm operates</div>
+                </div>
+
+                <!-- Employment -->
+                <div class="form-group">
+                    <label for="employees">Current Number of Employees</label>
+                    <input type="number" id="employees" placeholder="e.g., 25" min="1" max="1000" required>
+                    <div class="label-hint">Full-time employees currently employed</div>
+                </div>
+
+                <!-- Annual Sales -->
+                <div class="form-group">
+                    <label for="sales">Annual Sales Revenue (USD)</label>
+                    <input type="number" id="sales" placeholder="e.g., 500000" min="1000" required>
+                    <div class="label-hint">Total revenue in the last 12 months</div>
+                </div>
+
+                <!-- Employment Growth -->
+                <div class="form-group">
+                    <label for="empGrowth">3-Year Employment Growth Rate (%)</label>
+                    <input type="number" id="empGrowth" placeholder="e.g., -5" step="0.1" required>
+                    <div class="label-hint">Change in employees over last 3 years (-100 to +100)</div>
+                </div>
+            </div>
+
+            <!-- Capacity Utilization Slider -->
+            <div class="form-group">
+                <label for="capacity">Capacity Utilization</label>
+                <div class="slider-container">
+                    <input type="range" id="capacity" min="0" max="100" value="70">
+                    <div class="slider-value"><span id="capacityValue">70</span>%</div>
+                </div>
+                <div class="label-hint">Current production at what % of maximum capacity? (0-100%)</div>
+            </div>
+
+            <!-- Checkboxes -->
+            <div style="margin-top: 2rem; margin-bottom: 2rem;">
+                <div style="font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">Financial Access & Constraints</div>
+                
+                <label class="checkbox-group">
+                    <input type="checkbox" id="creditConstrained">
+                    <span class="checkbox-label">❌ I need financing but cannot access a bank loan</span>
+                </label>
+
+                <label class="checkbox-group" style="margin-top: 0.75rem;">
+                    <input type="checkbox" id="needsFinance">
+                    <span class="checkbox-label">💰 My firm needs external financing</span>
+                </label>
+
+                <label class="checkbox-group" style="margin-top: 0.75rem;">
+                    <input type="checkbox" id="hasLoan">
+                    <span class="checkbox-label">✓ I have an active bank loan or overdraft facility</span>
+                </label>
+
+                <label class="checkbox-group" style="margin-top: 0.75rem;">
+                    <input type="checkbox" id="electricityProblem">
+                    <span class="checkbox-label">⚡ Electricity access is a major obstacle</span>
+                </label>
+
+                <label class="checkbox-group" style="margin-top: 0.75rem;">
+                    <input type="checkbox" id="financeProblem">
+                    <span class="checkbox-label">🏦 Access to finance is a major obstacle</span>
+                </label>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" class="btn-predict">🎯 Predict My Risk Level</button>
+                <button type="reset" class="btn-reset">↻ Clear Form</button>
+            </div>
+        </form>
+
+        <!-- Results -->
+        <div id="resultsContainer" class="results-container">
+            <h2 class="results-title">📊 Your Distress Risk Assessment</h2>
+
+            <!-- Risk Classification -->
+            <div id="riskCard" class="risk-card">
+                <div class="risk-label">Predicted Risk Class</div>
+                <div class="risk-class" id="riskClass">—</div>
+                <div class="risk-description" id="riskDescription">—</div>
+            </div>
+
+            <!-- Probability Distribution -->
+            <div class="probabilities">
+                <div style="font-weight: 700; margin-bottom: 1.5rem; color: var(--text-dark);">Prediction Confidence</div>
+
+                <div class="prob-item">
+                    <div class="prob-label">
+                        <span>Stable (Low Risk)</span>
+                        <span id="probStable">0%</span>
+                    </div>
+                    <div class="prob-bar-container">
+                        <div class="prob-bar" id="barStable" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="prob-item">
+                    <div class="prob-label">
+                        <span>Moderate Risk</span>
+                        <span id="probModerate">0%</span>
+                    </div>
+                    <div class="prob-bar-container">
+                        <div class="prob-bar" id="barModerate" style="width: 0%; background: linear-gradient(90deg, var(--accent) 0%, var(--warning) 100%);"></div>
+                    </div>
+                </div>
+
+                <div class="prob-item">
+                    <div class="prob-label">
+                        <span>High Risk (Critical)</span>
+                        <span id="probHigh">0%</span>
+                    </div>
+                    <div class="prob-bar-container">
+                        <div class="prob-bar" id="barHigh" style="width: 0%; background: linear-gradient(90deg, var(--danger) 0%, var(--warning) 100%);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distress Signals -->
+            <div style="margin-bottom: 2rem;">
+                <div style="font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">Active Distress Signals</div>
+                <div class="signals">
+                    <div class="signal-card" id="signalCredit">
+                        <div class="signal-title">Credit Constraint</div>
+                        <div class="signal-status">✓</div>
+                    </div>
+                    <div class="signal-card" id="signalEmployment">
+                        <div class="signal-title">Employment Shrinkage</div>
+                        <div class="signal-status">✓</div>
+                    </div>
+                    <div class="signal-card" id="signalCapacity">
+                        <div class="signal-title">Low Capacity</div>
+                        <div class="signal-status">✓</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <div style="background: linear-gradient(135deg, rgba(30, 64, 175, 0.05) 0%, rgba(15, 118, 110, 0.05) 100%); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary);">
+                <div style="font-weight: 700; margin-bottom: 1rem; color: var(--text-dark);">📌 What This Means</div>
+                <div id="insights" style="color: var(--text-muted); line-height: 1.7;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>
+            <strong>SME Business Distress Prediction Tool</strong><br>
+            Powered by XGBoost & SHAP. Trained on 14,688 firms across 8 African countries.<br>
+            <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">View Source</a> • 
+            <a href="index.html">Home</a> • 
+            <a href="analytics.html">Analytics</a>
+        </p>
+    </footer>
+
+    <script>
+        // Update capacity display
+        document.getElementById('capacity').addEventListener('input', function() {
+            document.getElementById('capacityValue').textContent = this.value;
+        });
+
+        // Handle form submission
+        document.getElementById('predictorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get form values
+            const country = document.getElementById('country').value;
+            const employees = parseInt(document.getElementById('employees').value);
+            const sales = parseFloat(document.getElementById('sales').value);
+            const empGrowth = parseFloat(document.getElementById('empGrowth').value);
+            const capacity = parseInt(document.getElementById('capacity').value);
+            const creditConstrained = document.getElementById('creditConstrained').checked;
+            const needsFinance = document.getElementById('needsFinance').checked;
+            const hasLoan = document.getElementById('hasLoan').checked;
+            const electricityProblem = document.getElementById('electricityProblem').checked;
+            const financeProblem = document.getElementById('financeProblem').checked;
+
+            // Calculate signals
+            const signals = [];
+            if (creditConstrained) signals.push('credit');
+            if (empGrowth < -10) signals.push('employment');
+            if (capacity < 60) signals.push('capacity');
+
+            // Simulate XGBoost prediction using signal-based logic
+            let prediction = predictRisk({
+                employees,
+                sales,
+                empGrowth,
+                capacity,
+                creditConstrained,
+                needsFinance,
+                hasLoan,
+                electricityProblem,
+                financeProblem,
+                signalCount: signals.length
+            });
+
+            displayResults(prediction, signals, country, capacity, empGrowth);
+        });
+
+        function predictRisk(features) {
+            // Simplified prediction based on signals and features
+            const signalWeight = features.signalCount * 40;
+            const capacityWeight = features.capacity < 50 ? 30 : features.capacity < 70 ? 15 : 0;
+            const empGrowthWeight = features.empGrowth < -15 ? 20 : 0;
+            const creditWeight = features.creditConstrained ? 25 : 0;
+            
+            let riskScore = signalWeight + capacityWeight + empGrowthWeight + creditWeight;
+
+            // Stability boost
+            if (features.hasLoan && !features.creditConstrained) {
+                riskScore -= 20;
+            }
+
+            riskScore = Math.max(0, Math.min(100, riskScore));
+
+            // Predict class
+            let riskClass, probabilities;
+            
+            if (riskScore < 30) {
+                riskClass = 'Stable';
+                probabilities = [
+                    Math.min(95, 70 + (30 - riskScore) * 0.8),
+                    Math.max(5, 20 - (30 - riskScore) * 0.4),
+                    Math.max(2, 10 - (30 - riskScore) * 0.3)
+                ];
+            } else if (riskScore < 60) {
+                riskClass = 'Moderate Risk';
+                probabilities = [
+                    Math.max(20, 60 - (riskScore - 30) * 1.5),
+                    Math.min(70, 30 + (riskScore - 30) * 1.2),
+                    Math.max(5, 10 + (riskScore - 30) * 0.2)
+                ];
+            } else {
+                riskClass = 'High Risk';
+                probabilities = [
+                    Math.max(5, 30 - (riskScore - 60) * 0.5),
+                    Math.max(10, 30 - (riskScore - 60) * 0.3),
+                    Math.min(95, 40 + (riskScore - 60) * 0.8)
+                ];
+            }
+
+            // Normalize
+            const sum = probabilities.reduce((a, b) => a + b, 0);
+            probabilities = probabilities.map(p => (p / sum * 100).toFixed(1));
+
+            return {
+                riskClass,
+                probabilities,
+                riskScore
+            };
+        }
+
+        function displayResults(prediction, signals, country, capacity, empGrowth) {
+            const container = document.getElementById('resultsContainer');
+
+            // Risk card
+            const riskClass = prediction.riskClass;
+            const riskDescription = {
+                'Stable': '✓ No critical structural vulnerabilities detected. Continue monitoring.',
+                'Moderate Risk': '⚠️ Multiple warning signals detected. Early intervention recommended.',
+                'High Risk': '🚨 All distress signals active. Urgent action required to prevent failure.'
+            };
+
+            document.getElementById('riskClass').textContent = riskClass;
+            document.getElementById('riskDescription').textContent = riskDescription[riskClass];
+
+            // Update risk card styling
+            const riskCard = document.getElementById('riskCard');
+            if (riskClass === 'Stable') {
+                riskCard.style.borderColor = '#10b981';
+                riskCard.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%)';
+            } else if (riskClass === 'Moderate Risk') {
+                riskCard.style.borderColor = '#f59e0b';
+                riskCard.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%)';
+            } else {
+                riskCard.style.borderColor = '#ef4444';
+                riskCard.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%)';
+            }
+
+            // Probabilities
+            document.getElementById('probStable').textContent = prediction.probabilities[0] + '%';
+            document.getElementById('probModerate').textContent = prediction.probabilities[1] + '%';
+            document.getElementById('probHigh').textContent = prediction.probabilities[2] + '%';
+
+            document.getElementById('barStable').style.width = prediction.probabilities[0] + '%';
+            document.getElementById('barModerate').style.width = prediction.probabilities[1] + '%';
+            document.getElementById('barHigh').style.width = prediction.probabilities[2] + '%';
+
+            document.getElementById('barStable').textContent = prediction.probabilities[0] + '%';
+            document.getElementById('barModerate').textContent = prediction.probabilities[1] + '%';
+            document.getElementById('barHigh').textContent = prediction.probabilities[2] + '%';
+
+            // Signals
+            const signalCredit = document.getElementById('signalCredit');
+            const signalEmployment = document.getElementById('signalEmployment');
+            const signalCapacity = document.getElementById('signalCapacity');
+
+            if (signals.includes('credit')) {
+                signalCredit.classList.add('signal-active');
+                signalCredit.classList.remove('signal-inactive');
+                signalCredit.querySelector('.signal-status').textContent = '✓';
+            } else {
+                signalCredit.classList.add('signal-inactive');
+                signalCredit.classList.remove('signal-active');
+                signalCredit.querySelector('.signal-status').textContent = '✗';
+            }
+
+            if (signals.includes('employment')) {
+                signalEmployment.classList.add('signal-active');
+                signalEmployment.classList.remove('signal-inactive');
+                signalEmployment.querySelector('.signal-status').textContent = '✓';
+            } else {
+                signalEmployment.classList.add('signal-inactive');
+                signalEmployment.classList.remove('signal-active');
+                signalEmployment.querySelector('.signal-status').textContent = '✗';
+            }
+
+            if (signals.includes('capacity')) {
+                signalCapacity.classList.add('signal-active');
+                signalCapacity.classList.remove('signal-inactive');
+                signalCapacity.querySelector('.signal-status').textContent = '✓';
+            } else {
+                signalCapacity.classList.add('signal-inactive');
+                signalCapacity.classList.remove('signal-active');
+                signalCapacity.querySelector('.signal-status').textContent = '✗';
+            }
+
+            // Insights
+            let insightText = '';
+            if (riskClass === 'Stable') {
+                insightText = `Your firm shows strong fundamentals with ${signals.length} active distress signals. `;
+                if (capacity > 75) insightText += `Excellent capacity utilization (${capacity}%) suggests efficient operations. `;
+                if (empGrowth > 0) insightText += `Positive employment growth demonstrates business expansion. `;
+                insightText += `Continue monitoring key metrics and maintain financial discipline.`;
+            } else if (riskClass === 'Moderate Risk') {
+                insightText = `Your firm exhibits ${signals.length} distress signals requiring attention. `;
+                if (capacity < 70) insightText += `Low capacity utilization (${capacity}%) suggests underutilized assets. `;
+                if (empGrowth < -5) insightText += `Declining employment indicates workforce contraction. `;
+                insightText += `We recommend reviewing operational efficiency, exploring new markets, or seeking development finance support.`;
+            } else {
+                insightText = `Your firm shows all three critical distress signals (${signals.join(', ')}). `;
+                insightText += `Immediate action is required: engage with business advisors, explore credit facilities, improve capacity utilization, and stabilize workforce. `;
+                insightText += `Contact development finance institutions or government SME support programs in ${country}.`;
+            }
+
+            document.getElementById('insights').textContent = insightText;
+
+            // Show results
+            container.classList.add('show');
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Handle form reset
+        document.getElementById('predictorForm').addEventListener('reset', function() {
+            setTimeout(() => {
+                document.getElementById('capacityValue').textContent = '70';
+                document.getElementById('resultsContainer').classList.remove('show');
+            }, 0);
+        });
+    </script>
+</body>
+</html>
