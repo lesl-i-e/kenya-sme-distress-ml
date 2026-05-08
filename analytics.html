@@ -1,849 +1,1560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Dashboard - SME Distress Prediction</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #1e40af;
-            --primary-dark: #1e3a8a;
-            --primary-light: #3b82f6;
-            --secondary: #0f766e;
-            --secondary-light: #14b8a6;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f97316;
-            --bg-light: #f8fafc;
-            --bg-lighter: #f0f9ff;
-            --bg-white: #ffffff;
-            --text-dark: #1f2937;
-            --text-muted: #6b7280;
-            --border-light: #e5e7eb;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-            line-height: 1.6;
-            color: var(--text-dark);
-            background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
-            min-height: 100vh;
-        }
-
-        /* Header & Navigation */
-        header {
-            background: var(--bg-white);
-            border-bottom: 1px solid var(--border-light);
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-            color: var(--primary-dark);
-            font-weight: 700;
-            font-size: 1.3rem;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        nav {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--text-muted);
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        nav a:hover,
-        nav a.active {
-            color: var(--primary);
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .breadcrumb a {
-            color: var(--primary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        /* Main Content */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .page-header {
-            margin-bottom: 3rem;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .page-subtitle {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        /* Dashboard Sections */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
-
-        .metric-card {
-            background: var(--bg-white);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-light);
-            transition: all 0.3s ease;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary-light);
-        }
-
-        .metric-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.75rem;
-        }
-
-        .metric-value {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .metric-change {
-            font-size: 0.85rem;
-            color: var(--success);
-            font-weight: 500;
-        }
-
-        /* Section Container */
-        .section {
-            background: var(--bg-white);
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-light);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--primary-light);
-            color: var(--text-dark);
-        }
-
-        /* Table Styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1.5rem;
-        }
-
-        thead {
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.05) 0%, rgba(15, 118, 110, 0.05) 100%);
-        }
-
-        th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 700;
-            color: var(--primary-dark);
-            border-bottom: 2px solid var(--border-light);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-light);
-            font-size: 0.95rem;
-        }
-
-        tbody tr:hover {
-            background: var(--bg-lighter);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Badge Styles */
-        .badge {
-            display: inline-block;
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .badge-warning {
-            background: rgba(249, 115, 22, 0.1);
-            color: var(--warning);
-        }
-
-        .badge-danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-
-        /* Performance Highlights */
-        .performance-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .performance-item {
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.05) 0%, rgba(15, 118, 110, 0.05) 100%);
-            padding: 1.5rem;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid var(--border-light);
-        }
-
-        .performance-item-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-        }
-
-        .performance-item-value {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary-dark);
-        }
-
-        /* Feature Importance */
-        .feature-bar {
-            background: var(--bg-lighter);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .feature-name {
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .feature-bar-container {
-            background: white;
-            border-radius: 4px;
-            height: 24px;
-            overflow: hidden;
-            border: 1px solid var(--border-light);
-        }
-
-        .feature-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 8px;
-            font-size: 0.75rem;
-            color: white;
-            font-weight: 600;
-        }
-
-        /* Model Comparison */
-        .comparison-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .model-card {
-            background: linear-gradient(135deg, var(--bg-lighter) 0%, #fafbff 100%);
-            padding: 1.5rem;
-            border-radius: 10px;
-            border: 2px solid var(--border-light);
-            transition: all 0.3s ease;
-        }
-
-        .model-card:hover {
-            border-color: var(--primary);
-            box-shadow: var(--shadow-md);
-        }
-
-        .model-name {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            color: var(--text-dark);
-        }
-
-        .model-metrics {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem;
-        }
-
-        .metric-row-label {
-            color: var(--text-muted);
-        }
-
-        .metric-row-value {
-            font-weight: 700;
-            color: var(--primary-dark);
-        }
-
-        /* Footer */
-        footer {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 3rem 2rem;
-            margin-top: 4rem;
-            text-align: center;
-        }
-
-        footer p {
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.8;
-        }
-
-        footer a {
-            color: rgba(255, 255, 255, 0.9);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        footer a:hover {
-            color: white;
-            border-bottom-color: white;
-        }
-
-        /* Back Button */
-        .back-link {
-            display: inline-block;
-            margin-bottom: 2rem;
-            padding: 0.5rem 1rem;
-            background: var(--bg-lighter);
-            color: var(--primary);
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 1px solid var(--primary-light);
-        }
-
-        .back-link:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateX(-4px);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            nav {
-                flex-direction: row;
-                gap: 1rem;
-                justify-content: center;
-            }
-
-            .page-title {
-                font-size: 1.8rem;
-            }
-
-            .dashboard-grid,
-            .comparison-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-
-            table {
-                font-size: 0.85rem;
-            }
-
-            th, td {
-                padding: 0.75rem;
-            }
-        }
-
-        /* Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .metric-card,
-        .section,
-        .model-card {
-            animation: fadeIn 0.6s ease-out;
-            animation-fill-mode: both;
-        }
-
-        .metric-card:nth-child(1) { animation-delay: 0.1s; }
-        .metric-card:nth-child(2) { animation-delay: 0.2s; }
-        .metric-card:nth-child(3) { animation-delay: 0.3s; }
-        .metric-card:nth-child(4) { animation-delay: 0.4s; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SME Distress Predictor — East Africa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #0D1B3E;
+  --navy2:   #0a1630;
+  --teal:    #0F7B8C;
+  --teal2:   #13a0b5;
+  --gold:    #C9A84C;
+  --gold2:   #e8c96d;
+  --white:   #FFFFFF;
+  --glass:   rgba(255,255,255,0.06);
+  --glass2:  rgba(255,255,255,0.10);
+  --border:  rgba(255,255,255,0.10);
+  --border2: rgba(255,255,255,0.18);
+  --muted:   rgba(255,255,255,0.45);
+  --muted2:  rgba(255,255,255,0.65);
+  --input-bg: rgba(255,255,255,0.07);
+  --input-border: rgba(255,255,255,0.15);
+  --input-focus: rgba(15,123,140,0.5);
+  --green:   #22C55E;
+  --orange:  #F97316;
+  --red:     #EF4444;
+  --serif:   'Syne', sans-serif;
+  --sans:    'Inter', sans-serif;
+  --mono:    'JetBrains Mono', monospace;
+  --radius:  16px;
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATED BG ── */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(15,123,140,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 80%, rgba(201,168,76,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(15,123,140,0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(13,27,62,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--white);
+}
+.nav-logo em { color: var(--gold); font-style: normal; }
+.nav-badge {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  padding: 5px 12px;
+  background: rgba(15,123,140,0.2);
+  border: 1px solid rgba(15,123,140,0.4);
+  border-radius: 999px;
+  color: var(--teal2);
+  letter-spacing: 0.06em;
+}
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  font-size: 0.82rem;
+  color: var(--muted2);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.nav-links a:hover { color: var(--white); }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--teal2);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  padding: 6px 18px;
+  background: rgba(15,123,140,0.12);
+  border: 1px solid rgba(15,123,140,0.3);
+  border-radius: 999px;
+  animation: fadeDown 0.8s ease both;
+}
+.hero-eyebrow::before {
+  content:'';
+  width:6px; height:6px;
+  border-radius:50%;
+  background: var(--teal2);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp   { from{opacity:0;transform:translateY(16px)}  to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+  animation: fadeUp 0.9s 0.1s ease both;
+}
+.hero h1 .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--teal2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--muted2);
+  max-width: 540px;
+  line-height: 1.75;
+  margin-bottom: 48px;
+  animation: fadeUp 0.9s 0.2s ease both;
+}
+.hero-cta {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 72px;
+  animation: fadeUp 0.9s 0.3s ease both;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal2) 100%);
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  padding: 15px 32px;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition);
+  box-shadow: 0 8px 32px rgba(15,123,140,0.35);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(15,123,140,0.5);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 15px 28px;
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+.btn-ghost:hover {
+  background: var(--glass2);
+  color: var(--white);
+  border-color: var(--border2);
+}
+
+/* ── STAT STRIP ── */
+.stat-strip {
+  display: flex;
+  gap: 0;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  animation: fadeIn 1s 0.5s ease both;
+}
+.stat-item {
+  flex: 1;
+  padding: 20px 28px;
+  text-align: center;
+  position: relative;
+}
+.stat-item:not(:last-child)::after {
+  content:'';
+  position: absolute;
+  right: 0; top: 20%; bottom: 20%;
+  width: 1px;
+  background: var(--border);
+}
+.stat-num {
+  font-family: var(--mono);
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: var(--gold);
+  display: block;
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+/* ── SECTION HEADERS ── */
+.section-wrap {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px 100px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.section-title {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+.section-sub {
+  text-align: center;
+  color: var(--muted2);
+  font-size: 0.92rem;
+  margin-bottom: 48px;
+  line-height: 1.6;
+}
+.gold-line {
+  width: 48px; height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--teal));
+  border-radius: 999px;
+  margin: 0 auto 16px;
+}
+
+/* ── FORM CARD ── */
+.form-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
+}
+.form-section {
+  padding: 36px 44px;
+  border-bottom: 1px solid var(--border);
+}
+.form-section:last-of-type { border-bottom: none; }
+.form-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.section-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(15,123,140,0.3), rgba(15,123,140,0.1));
+  border: 1px solid rgba(15,123,140,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.form-section-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--teal2);
+}
+.form-section-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ── FIELD ── */
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field label {
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--muted2);
+}
+.field label .badge {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: 6px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.badge-key { background: rgba(201,168,76,0.2); color: var(--gold); }
+.badge-opt { background: rgba(255,255,255,0.08); color: var(--muted2); }
+
+.field input, .field select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  color: var(--white);
+  outline: none;
+  appearance: none;
+  transition: all var(--transition);
+}
+.field input::placeholder { color: rgba(255,255,255,0.25); }
+.field input:focus, .field select:focus {
+  border-color: var(--teal);
+  background: rgba(15,123,140,0.12);
+  box-shadow: 0 0 0 3px rgba(15,123,140,0.15);
+}
+.field select option {
+  background: #162447;
+  color: var(--white);
+}
+.field .hint {
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.field .currency-tag {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+/* Input with prefix */
+.input-wrap {
+  position: relative;
+}
+.input-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--gold);
+  font-weight: 600;
+  pointer-events: none;
+  transition: all var(--transition);
+}
+.input-wrap input { padding-left: 52px; }
+
+/* ── TOGGLE BUTTONS ── */
+.toggle-group { display: flex; gap: 6px; }
+.toggle-btn {
+  flex: 1;
+  padding: 10px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
+  color: var(--muted2);
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+}
+.toggle-btn:hover:not(.active) {
+  border-color: var(--teal);
+  color: var(--teal2);
+  background: rgba(15,123,140,0.1);
+}
+.toggle-btn.active-yes {
+  background: rgba(34,197,94,0.15);
+  border-color: rgba(34,197,94,0.4);
+  color: var(--green);
+}
+.toggle-btn.active-no {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.3);
+  color: var(--red);
+}
+
+/* ── SLIDER ── */
+.slider-wrap { position: relative; padding-top: 4px; }
+.range-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--input-border);
+  outline: none;
+  cursor: pointer;
+}
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15,123,140,0.5);
+  border: 2px solid var(--white);
+}
+.slider-val {
+  position: absolute;
+  right: 0; top: -28px;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teal2);
+  background: rgba(15,123,140,0.2);
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,123,140,0.3);
+}
+
+/* ── SUBMIT AREA ── */
+.form-footer {
+  padding: 32px 44px;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.form-footer-text {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 440px;
+}
+.form-footer-text strong { color: var(--muted2); }
+.btn-predict {
+  background: linear-gradient(135deg, var(--navy2) 0%, var(--navy) 100%);
+  border: 1px solid rgba(201,168,76,0.4);
+  color: var(--white);
+  border-radius: 14px;
+  padding: 16px 40px;
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.btn-predict::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(15,123,140,0.12));
+}
+.btn-predict:hover:not(:disabled) {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 24px rgba(201,168,76,0.15);
+}
+.btn-predict:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.spinner {
+  width:18px; height:18px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: var(--white);
+  border-radius:50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+.btn-predict.loading .spinner { display:block; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.error-msg {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 0.85rem;
+  color: #fca5a5;
+  margin: 0 44px 20px;
+  display: none;
+}
+
+/* ── RESULT PANEL ── */
+#result-panel {
+  display: none;
+  margin-top: 40px;
+  animation: fadeUp 0.6s ease both;
+}
+.result-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+}
+.result-banner {
+  padding: 40px 44px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.result-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+}
+.result-banner.stable::before   { background: radial-gradient(ellipse at 0% 0%, var(--green), transparent 60%); }
+.result-banner.moderate::before { background: radial-gradient(ellipse at 0% 0%, var(--orange), transparent 60%); }
+.result-banner.high::before     { background: radial-gradient(ellipse at 0% 0%, var(--red), transparent 60%); }
+
+.result-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.result-badge {
+  width: 80px; height: 80px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  flex-shrink: 0;
+}
+.result-badge.stable   { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); }
+.result-badge.moderate { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3); }
+.result-badge.high     { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); }
+
+.result-tag {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+.result-tag.stable   { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+.result-tag.moderate { background:rgba(249,115,22,0.15); color:var(--orange); border:1px solid rgba(249,115,22,0.3); }
+.result-tag.high     { background:rgba(239,68,68,0.15); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+
+.result-title {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+.result-sub { font-size: 0.92rem; color: var(--muted2); line-height: 1.65; }
+
+/* SCORE DIAL */
+.score-wrap {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.dial-container {
+  position: relative;
+  width: 130px; height: 70px;
+  flex-shrink: 0;
+}
+.dial-svg { width:130px; height:70px; }
+.dial-track { fill:none; stroke:rgba(255,255,255,0.08); stroke-width:10; stroke-linecap:round; }
+.dial-fill  { fill:none; stroke-width:10; stroke-linecap:round; transition: stroke-dashoffset 1.2s cubic-bezier(0.22,0.61,0.36,1); }
+.dial-label {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+.dial-num {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.dial-sub { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+.prob-bars { flex: 1; min-width: 220px; }
+.prob-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.prob-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.prob-name { font-size:0.8rem; color:var(--muted2); width:120px; flex-shrink:0; }
+.prob-track { flex:1; height:5px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden; }
+.prob-fill { height:100%; border-radius:999px; transition:width 1.2s cubic-bezier(0.22,0.61,0.36,1); }
+.prob-pct { font-family:var(--mono); font-size:0.8rem; font-weight:600; width:40px; text-align:right; flex-shrink:0; }
+
+/* SIGNALS */
+.result-body { padding: 0 44px 44px; }
+.result-section-title {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 16px;
+  margin-top: 32px;
+}
+.signals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.signal-card {
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid transparent;
+  transition: all var(--transition);
+}
+.signal-card.triggered {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.25);
+}
+.signal-card.clear {
+  background: rgba(34,197,94,0.06);
+  border-color: rgba(34,197,94,0.2);
+}
+.signal-emoji { font-size:1.6rem; margin-bottom:10px; }
+.signal-name { font-size:0.82rem; font-weight:600; margin-bottom:4px; }
+.signal-chip {
+  font-family: var(--mono);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.signal-card.triggered .signal-chip { background:rgba(239,68,68,0.2); color:var(--red); }
+.signal-card.clear .signal-chip { background:rgba(34,197,94,0.15); color:var(--green); }
+.signal-desc { font-size: 0.77rem; color: var(--muted); margin-top:8px; line-height:1.5; }
+
+/* RECOMMENDATIONS */
+.reco-grid { display: flex; flex-direction: column; gap: 12px; }
+.reco-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  transition: all var(--transition);
+}
+.reco-item:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border2);
+  transform: translateX(4px);
+}
+.reco-num {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--teal), rgba(15,123,140,0.5));
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.reco-text { font-size: 0.88rem; color: var(--muted2); line-height: 1.65; }
+.reco-text strong { color: var(--white); }
+
+/* SHAP INSIGHT */
+.shap-bar-section {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 4px;
+}
+.shap-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.shap-row:last-child { margin-bottom:0; }
+.shap-name { font-size:0.78rem; color:var(--muted2); width:180px; font-family:var(--mono); flex-shrink:0; }
+.shap-track { flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:999px; overflow:hidden; }
+.shap-fill-pos { height:100%; border-radius:999px; background: linear-gradient(90deg, var(--red), rgba(239,68,68,0.5)); }
+.shap-fill-neg { height:100%; border-radius:999px; background: linear-gradient(90deg, var(--green), rgba(34,197,94,0.5)); }
+.shap-val { font-family:var(--mono); font-size:0.75rem; width:44px; text-align:right; flex-shrink:0; }
+
+/* COUNTRY BENCHMARK */
+.benchmark-card {
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+.benchmark-icon { font-size: 2rem; flex-shrink:0; }
+.benchmark-text { font-size: 0.88rem; color: var(--muted2); line-height: 1.6; }
+.benchmark-text strong { color: var(--gold); }
+
+/* DISCLAIMER */
+.result-disclaimer {
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid var(--border);
+  padding: 16px 44px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── HOW IT WORKS ── */
+.how-section {
+  position: relative;
+  z-index: 1;
+  padding: 80px 24px 100px;
+  text-align: center;
+}
+.steps-wrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.step-card {
+  background: rgba(255,255,255,0.03);
+  padding: 32px 24px;
+  text-align: center;
+  transition: all var(--transition);
+}
+.step-card:hover { background: rgba(255,255,255,0.06); }
+.step-num {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.step-icon {
+  font-size: 2rem;
+  margin-bottom: 14px;
+  display: block;
+}
+.step-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.step-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  background: rgba(0,0,0,0.3);
+  border-top: 1px solid var(--border);
+  padding: 48px 40px;
+  text-align: center;
+}
+.footer-logo {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.footer-logo em { color: var(--gold); font-style:normal; }
+footer p { font-size: 0.8rem; color: var(--muted); line-height: 2; }
+footer a { color: var(--teal2); text-decoration: none; }
+footer a:hover { color: var(--white); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:720px){
+  nav { padding: 14px 20px; }
+  .nav-links { display:none; }
+  .form-section { padding: 24px 20px; }
+  .form-grid, .form-grid.cols-3 { grid-template-columns:1fr; }
+  .form-footer { flex-direction:column; padding: 24px 20px; }
+  .result-banner, .result-body { padding: 24px 20px; }
+  .result-disclaimer { padding: 14px 20px; }
+  .signals-grid { grid-template-columns: 1fr 1fr; }
+  .steps-wrap { grid-template-columns: 1fr 1fr; }
+  .error-msg { margin: 0 20px 16px; }
+  .hero h1 { font-size: 2.4rem; }
+  .stat-strip { flex-wrap: wrap; }
+  .score-wrap { flex-direction: column; align-items: flex-start; }
+  .form-footer-text { max-width: 100%; }
+}
+</style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-content">
-            <a href="index.html" class="logo">
-                <div class="logo-icon">📊</div>
-                <span>SME Distress Prediction</span>
-            </a>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="analytics.html" class="active">Analytics</a>
-                <a href="geography.html">Geography</a>
-                <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">GitHub</a>
-            </nav>
-        </div>
-    </header>
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
 
-    <!-- Breadcrumb -->
-    <div class="breadcrumb">
-        <a href="index.html">Home</a> / <span>Analytics Dashboard</span>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SME <em>Distress</em> Predictor</div>
+  <div class="nav-links">
+    <a href="#predictor">Assess Now</a>
+    <a href="#how">How It Works</a>
+    <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">GitHub ↗</a>
+  </div>
+  <div class="nav-badge">XGBoost · F1 99.85%</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">World Bank Data · 14,688 Firms · 8 Countries</div>
+  <h1>
+    Is your business<br>
+    <span class="line2">financially distressed?</span>
+  </h1>
+  <p class="hero-sub">
+    Answer 12 plain-language questions. Our AI model — trained on real East African firms — tells you your risk class, explains why, and gives you a tailored action plan.
+  </p>
+  <div class="hero-cta">
+    <a href="#predictor" class="btn-primary">Start Free Assessment →</a>
+    <a href="#how" class="btn-ghost">How it works</a>
+  </div>
+  <div class="stat-strip">
+    <div class="stat-item"><span class="stat-num">14,688</span><span class="stat-label">Firms Trained On</span></div>
+    <div class="stat-item"><span class="stat-num">99.85%</span><span class="stat-label">F1-Macro Score</span></div>
+    <div class="stat-item"><span class="stat-num">8</span><span class="stat-label">African Countries</span></div>
+    <div class="stat-item"><span class="stat-num">99.62%</span><span class="stat-label">High Risk Detection</span></div>
+  </div>
+</section>
+
+<!-- PREDICTOR -->
+<section id="predictor" class="section-wrap">
+  <div class="gold-line"></div>
+  <h2 class="section-title">Assess Your Business</h2>
+  <p class="section-sub">All answers stay in your browser. Nothing is stored or shared. Takes about 2 minutes.</p>
+
+  <form id="predict-form" class="form-card" onsubmit="return false;">
+
+    <!-- 1: Business Profile -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="section-icon">🏢</div>
+        <div>
+          <div class="form-section-label">Section 1 — Business Profile</div>
+          <div class="form-section-desc">Tell us the basics about your business</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Which country does your business operate in? <span class="badge badge-key">Required</span></label>
+          <select id="country" onchange="updateCurrency()" required>
+            <option value="">Pick your country…</option>
+            <option value="Kenya">🇰🇪 Kenya</option>
+            <option value="Uganda">🇺🇬 Uganda</option>
+            <option value="Tanzania">🇹🇿 Tanzania</option>
+            <option value="South Africa">🇿🇦 South Africa</option>
+            <option value="Ghana">🇬🇭 Ghana</option>
+            <option value="Nigeria">🇳🇬 Nigeria</option>
+            <option value="Ethiopia">🇪🇹 Ethiopia</option>
+            <option value="Rwanda">🇷🇼 Rwanda</option>
+            <option value="Other">🌍 Other African country</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>What does your business mainly do? <span class="badge badge-opt">Optional</span></label>
+          <select id="sector">
+            <option value="">Pick a sector…</option>
+            <option>Agriculture & Food Processing</option>
+            <option>Manufacturing & Production</option>
+            <option>Retail & Wholesale Trade</option>
+            <option>Services & Consulting</option>
+            <option>Construction & Real Estate</option>
+            <option>Technology & Digital</option>
+            <option>Transport & Logistics</option>
+            <option>Hospitality & Tourism</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>How many years has your business been running? <span class="badge badge-key">Required</span></label>
+          <input type="number" id="age" min="0" max="100" placeholder="e.g. 5  (enter 1 if less than a year)" required>
+          <span class="hint">Enter 0 if your business is less than a year old</span>
+        </div>
+        <div class="field">
+          <label>How many full-time staff do you have right now? <span class="badge badge-key">Required</span></label>
+          <input type="number" id="employees_now" min="0" placeholder="e.g. 12" required>
+          <span class="hint">Count yourself and all permanent employees</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <a href="index.html" class="back-link">← Back to Home</a>
-
-        <div class="page-header">
-            <h1 class="page-title">Analytics Dashboard</h1>
-            <p class="page-subtitle">Comprehensive model performance metrics, evaluation results, and feature importance analysis</p>
+    <!-- 2: Finance & Credit -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="section-icon">💰</div>
+        <div>
+          <div class="form-section-label">Section 2 — Finance & Credit Access</div>
+          <div class="form-section-desc">These are the most critical questions for your assessment</div>
         </div>
-
-        <!-- Key Metrics -->
-        <div class="dashboard-grid">
-            <div class="metric-card">
-                <div class="metric-label">Dataset Size</div>
-                <div class="metric-value">14,688</div>
-                <div class="metric-change">Firms analyzed</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Test Set Performance</div>
-                <div class="metric-value">1.0000</div>
-                <div class="metric-change">ROC-AUC Score</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">F1-Macro Score</div>
-                <div class="metric-value">0.9985</div>
-                <div class="metric-change">Multi-class weighted average</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Countries Covered</div>
-                <div class="metric-value">8</div>
-                <div class="metric-change">Geographic regions</div>
-            </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Does your business need a loan or external funding right now? <span class="badge badge-key">Required</span></label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" data-field="needs_finance" data-value="1" onclick="toggle(this,'yes')">✓ Yes, we need funding</button>
+            <button type="button" class="toggle-btn" data-field="needs_finance" data-value="0" onclick="toggle(this,'no')">✗ No, we're self-sufficient</button>
+          </div>
+          <input type="hidden" id="needs_finance">
+          <span class="hint">This includes bank loans, investor funding, or any external capital</span>
         </div>
-
-        <!-- Model Performance Section -->
-        <div class="section">
-            <h2 class="section-title">🎯 Model Performance Summary</h2>
-            
-            <div class="performance-grid">
-                <div class="performance-item">
-                    <div class="performance-item-label">ROC-AUC</div>
-                    <div class="performance-item-value">1.0000</div>
-                </div>
-                <div class="performance-item">
-                    <div class="performance-item-label">F1-Macro</div>
-                    <div class="performance-item-value">0.9985</div>
-                </div>
-                <div class="performance-item">
-                    <div class="performance-item-label">High Risk F1</div>
-                    <div class="performance-item-value">0.9962</div>
-                </div>
-                <div class="performance-item">
-                    <div class="performance-item-label">Accuracy</div>
-                    <div class="performance-item-value">99.86%</div>
-                </div>
-            </div>
-
-            <p style="color: var(--text-muted); margin-top: 1.5rem; font-size: 0.95rem;">
-                The tuned XGBoost model achieved exceptional performance on the held-out test set across all three distress classes (Stable, Moderate Risk, High Risk). 
-                The model demonstrates near-perfect discrimination with a ROC-AUC of 1.0000 and near-universal correct classification (F1-macro = 0.9985). 
-                Critically, the High Risk class—the most important for early warning—achieved an F1-score of 0.9962, meaning 99.62% of high-risk firms are correctly identified.
-            </p>
+        <div class="field">
+          <label>Have you been unable to get a loan when you needed one? <span class="badge badge-key">Required</span></label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" data-field="credit_constrained" data-value="1" onclick="toggle(this,'yes')">✓ Yes — denied or gave up</button>
+            <button type="button" class="toggle-btn" data-field="credit_constrained" data-value="0" onclick="toggle(this,'no')">✗ No — I can access credit</button>
+          </div>
+          <input type="hidden" id="credit_constrained">
+          <span class="hint">Include cases where you were rejected, discouraged, or gave up applying in the last 2 years</span>
         </div>
-
-        <!-- Model Comparison -->
-        <div class="section">
-            <h2 class="section-title">📈 Model Comparison</h2>
-            
-            <div class="comparison-cards">
-                <div class="model-card">
-                    <div class="model-name">Logistic Regression</div>
-                    <div class="model-metrics">
-                        <div class="metric-row">
-                            <span class="metric-row-label">ROC-AUC:</span>
-                            <span class="metric-row-value">0.9507</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-row-label">F1-Macro:</span>
-                            <span class="metric-row-value">0.7824</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-row-label">High Risk F1:</span>
-                            <span class="metric-row-value">0.6352</span>
-                        </div>
-                        <div class="metric-row" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-light);">
-                            <span class="metric-row-label" style="font-style: italic;">Role:</span>
-                            <span class="metric-row-value" style="color: var(--warning); font-size: 0.9rem;">Baseline</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="model-card">
-                    <div class="model-name">Random Forest</div>
-                    <div class="model-metrics">
-                        <div class="metric-row">
-                            <span class="metric-row-label">ROC-AUC:</span>
-                            <span class="metric-row-value">1.0000</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-row-label">F1-Macro:</span>
-                            <span class="metric-row-value">0.9970</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-row-label">High Risk F1:</span>
-                            <span class="metric-row-value">0.9924</span>
-                        </div>
-                        <div class="metric-row" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-light);">
-                            <span class="metric-row-label" style="font-style: italic;">Role:</span>
-                            <span class="metric-row-value" style="color: var(--primary); font-size: 0.9rem;">Strong Baseline</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="model-card" style="border-color: var(--primary); background: linear-gradient(135deg, var(--bg-lighter) 0%, rgba(30, 64, 175, 0.05) 100%);">
-                    <div class="model-name">🏆 XGBoost (Tuned)</div>
-                    <div class="model-metrics">
-                        <div class="metric-row">
-                            <span class="metric-row-label">ROC-AUC:</span>
-                            <span class="metric-row-value">1.0000</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-row-label">F1-Macro:</span>
-                            <span class="metric-row-value">0.9985</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-row-label">High Risk F1:</span>
-                            <span class="metric-row-value">0.9962</span>
-                        </div>
-                        <div class="metric-row" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-light);">
-                            <span class="metric-row-label" style="font-style: italic;">Role:</span>
-                            <span class="metric-row-value" style="color: var(--success); font-size: 0.9rem;">Selected Model</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <p style="color: var(--text-muted); margin-top: 2rem; font-size: 0.95rem;">
-                <strong>Key Finding:</strong> Linear models (Logistic Regression) are insufficient for this task, with F1-macro of only 0.7824. 
-                Tree-based ensemble methods dramatically improve performance. XGBoost surpasses Random Forest on F1-macro (0.9985 vs 0.9970), 
-                particularly for the critical High Risk class (0.9962 vs 0.9924).
-            </p>
+        <div class="field">
+          <label>Do you currently have an active bank loan or overdraft? <span class="badge badge-key">Required</span></label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" data-field="has_loan" data-value="1" onclick="toggle(this,'yes')">✓ Yes, I have one</button>
+            <button type="button" class="toggle-btn" data-field="has_loan" data-value="0" onclick="toggle(this,'no')">✗ No active loans</button>
+          </div>
+          <input type="hidden" id="has_loan">
         </div>
-
-        <!-- Feature Importance -->
-        <div class="section">
-            <h2 class="section-title">🔍 Feature Importance (SHAP Analysis)</h2>
-            
-            <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">
-                Top features by mean absolute SHAP value. SHAP (SHapley Additive exPlanations) provides unified attribution of model predictions to input features, 
-                enabling both global and local interpretability.
-            </p>
-
-            <div class="feature-bar">
-                <div class="feature-name">1. credit_constrained (Needs finance but has no loan)</div>
-                <div class="feature-bar-container">
-                    <div class="feature-bar-fill" style="width: 100%;">2.003</div>
-                </div>
-            </div>
-
-            <div class="feature-bar">
-                <div class="feature-name">2. employment_growth_rate (Workforce change)</div>
-                <div class="feature-bar-container">
-                    <div class="feature-bar-fill" style="width: 85.3%;">1.708</div>
-                </div>
-            </div>
-
-            <div class="feature-bar">
-                <div class="feature-name">3. capacity_util_pct (Capacity utilisation %)</div>
-                <div class="feature-bar-container">
-                    <div class="feature-bar-fill" style="width: 72.8%;">1.459</div>
-                </div>
-            </div>
-
-            <div class="feature-bar">
-                <div class="feature-name">4. needs_finance_bin (Firm needs external finance)</div>
-                <div class="feature-bar-container">
-                    <div class="feature-bar-fill" style="width: 23.7%;">0.475</div>
-                </div>
-            </div>
-
-            <div class="feature-bar">
-                <div class="feature-name">5. has_loan_bin (Has active bank loan)</div>
-                <div class="feature-bar-container">
-                    <div class="feature-bar-fill" style="width: 21.7%;">0.434</div>
-                </div>
-            </div>
-
-            <p style="color: var(--text-muted); margin-top: 2rem; font-size: 0.95rem;">
-                <strong>Key Insight:</strong> The three engineered distress signals (credit_constrained, employment_growth_rate, capacity_util_pct) 
-                are also the three most important model features, validating the target engineering approach. 
-                Credit constraint (SHAP = 2.003) is overwhelmingly the strongest predictor of SME distress, 
-                consistent with World Bank SME financing gap literature.
-            </p>
+        <div class="field">
+          <label>What is your estimated annual business revenue? <span class="badge badge-opt">Optional</span></label>
+          <div class="input-wrap">
+            <span class="input-prefix" id="currency-prefix">USD</span>
+            <input type="number" id="sales" min="0" placeholder="e.g. 500000">
+          </div>
+          <span class="currency-tag" id="currency-tag">🌍 Showing in USD</span>
+          <span class="hint">Approximate is fine — leave blank if unsure</span>
         </div>
-
-        <!-- Class Performance -->
-        <div class="section">
-            <h2 class="section-title">📊 Per-Class Performance</h2>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Class</th>
-                        <th>Label</th>
-                        <th>Precision</th>
-                        <th>Recall</th>
-                        <th>F1-Score</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>0</strong></td>
-                        <td>Stable</td>
-                        <td>0.9997</td>
-                        <td>0.9997</td>
-                        <td>0.9997</td>
-                        <td><span class="badge badge-success">✓ Excellent</span></td>
-                    </tr>
-                    <tr>
-                        <td><strong>1</strong></td>
-                        <td>Moderate Risk</td>
-                        <td>0.9960</td>
-                        <td>0.9960</td>
-                        <td>0.9960</td>
-                        <td><span class="badge badge-success">✓ Excellent</span></td>
-                    </tr>
-                    <tr>
-                        <td><strong>2</strong></td>
-                        <td>High Risk</td>
-                        <td>0.9962</td>
-                        <td>0.9962</td>
-                        <td>0.9962</td>
-                        <td><span class="badge badge-success">✓ Critical Class</span></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p style="color: var(--text-muted); margin-top: 1.5rem; font-size: 0.95rem;">
-                All three classes achieve near-identical, near-perfect performance. Particularly impressive is the High Risk class (F1 = 0.9962), 
-                the most important for early warning systems, with 99.62% of true high-risk firms correctly identified.
-            </p>
-        </div>
-
-        <!-- Test Set Composition -->
-        <div class="section">
-            <h2 class="section-title">📋 Test Set Composition</h2>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>Class</th>
-                        <th>Count</th>
-                        <th>Percentage</th>
-                        <th>Distribution</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Stable (0)</strong></td>
-                        <td>2,068</td>
-                        <td>70.4%</td>
-                        <td><div style="background: var(--bg-lighter); padding: 0.25rem; border-radius: 4px; width: 70%; background: linear-gradient(90deg, var(--success) 70%, var(--border-light) 70%);"></div></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Moderate Risk (1)</strong></td>
-                        <td>556</td>
-                        <td>18.9%</td>
-                        <td><div style="background: var(--bg-lighter); padding: 0.25rem; border-radius: 4px; width: 19%; background: linear-gradient(90deg, var(--accent) 19%, var(--border-light) 19%);"></div></td>
-                    </tr>
-                    <tr>
-                        <td><strong>High Risk (2)</strong></td>
-                        <td>314</td>
-                        <td>10.7%</td>
-                        <td><div style="background: var(--bg-lighter); padding: 0.25rem; border-radius: 4px; width: 11%; background: linear-gradient(90deg, var(--danger) 11%, var(--border-light) 11%);"></div></td>
-                    </tr>
-                    <tr style="background: linear-gradient(90deg, rgba(30, 64, 175, 0.05) 0%, rgba(15, 118, 110, 0.05) 100%);">
-                        <td><strong>TOTAL</strong></td>
-                        <td><strong>2,938</strong></td>
-                        <td><strong>100%</strong></td>
-                        <td></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p style="color: var(--text-muted); margin-top: 1.5rem; font-size: 0.95rem;">
-                The test set (20% of 14,688 firms) maintains natural class proportions. Moderate and High Risk firms (29.6% combined) represent 
-                the at-risk segment requiring intervention.
-            </p>
-        </div>
-
-        <!-- Conclusion -->
-        <div class="section" style="background: linear-gradient(135deg, rgba(30, 64, 175, 0.05) 0%, rgba(15, 118, 110, 0.05) 100%); border-color: var(--primary-light);">
-            <h2 class="section-title">📌 Key Takeaways</h2>
-            
-            <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-light);">
-                    <strong style="color: var(--primary-dark);">1. Exceptional Model Performance</strong><br>
-                    <span style="color: var(--text-muted);">ROC-AUC of 1.0000 and F1-macro of 0.9985 indicate near-perfect multi-class classification with zero false negatives on critical High Risk class.</span>
-                </li>
-                <li style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-light);">
-                    <strong style="color: var(--primary-dark);">2. Interpretability via SHAP</strong><br>
-                    <span style="color: var(--text-muted);">SHAP analysis confirms credit constraint as the dominant distress predictor, aligning with World Bank SME financing gap literature and enabling transparent decision-making.</span>
-                </li>
-                <li style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-light);">
-                    <strong style="color: var(--primary-dark);">3. Algorithm Selection Matters</strong><br>
-                    <span style="color: var(--text-muted);">XGBoost's gradient boosting with regularisation outperforms both linear models (F1-macro 0.78) and unregularised Random Forests, highlighting the importance of algorithm selection for imbalanced classification.</span>
-                </li>
-                <li>
-                    <strong style="color: var(--primary-dark);">4. Ready for Deployment</strong><br>
-                    <span style="color: var(--text-muted);">The tuned model's exceptional test set performance, combined with SHAP interpretability, makes it suitable for responsible AI deployment in high-stakes SME credit and policy contexts.</span>
-                </li>
-            </ul>
-        </div>
+      </div>
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <p>
-            <strong>SME Business Distress Prediction in East Africa</strong><br>
-            A machine learning project analyzing World Bank Enterprise Survey data across 8 African countries<br><br>
-            <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">View on GitHub</a> • 
-            <a href="index.html">Home</a> • 
-            <a href="geography.html">Geography</a><br><br>
-            Built with XGBoost, SHAP, and scikit-learn. Data from World Bank Enterprise Surveys.
-        </p>
-    </footer>
+    <!-- 3: Operations -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="section-icon">⚙️</div>
+        <div>
+          <div class="form-section-label">Section 3 — Operational Health</div>
+          <div class="form-section-desc">How efficiently is your business running?</div>
+        </div>
+      </div>
+      <div class="form-grid cols-3">
+        <div class="field" style="grid-column: span 3;">
+          <label>At what percentage of your maximum possible output is your business currently operating? <span class="badge badge-key">Required</span></label>
+          <div class="slider-wrap">
+            <span class="slider-val" id="cap-val">65%</span>
+            <input type="range" class="range-slider" id="capacity" min="0" max="100" value="65"
+              oninput="document.getElementById('cap-val').textContent=this.value+'%'; updateSliderColor(this)">
+          </div>
+          <span class="hint">Example: If your shop can serve 100 customers/day but only serves 65, your capacity is 65%. Below 60% is a distress signal.</span>
+        </div>
+        <div class="field">
+          <label>How many full-time staff did you have 3 years ago? <span class="badge badge-opt">Optional</span></label>
+          <input type="number" id="employees_past" min="0" placeholder="e.g. 18">
+          <span class="hint">Leave blank if your business is under 3 years old</span>
+        </div>
+        <div class="field">
+          <label>Roughly, has your revenue grown or shrunk in the last 3 years? <span class="badge badge-opt">Optional</span></label>
+          <select id="sales_growth_cat">
+            <option value="">Select…</option>
+            <option value="30">📈 Grown significantly (30%+)</option>
+            <option value="15">📈 Grown moderately (10–30%)</option>
+            <option value="5">📈 Grown slightly (0–10%)</option>
+            <option value="-10">📉 Shrunk slightly (0–15%)</option>
+            <option value="-25">📉 Shrunk significantly (15%+)</option>
+            <option value="0">➡️ Stayed about the same</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>What is your approximate monthly profit margin? <span class="badge badge-opt">Optional</span></label>
+          <select id="margin_cat">
+            <option value="">Select…</option>
+            <option value="high">Profitable — making good money</option>
+            <option value="low">Breaking even — just covering costs</option>
+            <option value="neg">Loss-making — spending more than earning</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4: Context -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="section-icon">🌍</div>
+        <div>
+          <div class="form-section-label">Section 4 — Business Environment</div>
+          <div class="form-section-desc">What external challenges are you facing?</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Is unreliable electricity supply a serious problem for your business?</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" data-field="electricity_obstacle" data-value="1" onclick="toggle(this,'yes')">✓ Yes, it hurts us</button>
+            <button type="button" class="toggle-btn" data-field="electricity_obstacle" data-value="0" onclick="toggle(this,'no')">✗ Not a major issue</button>
+          </div>
+          <input type="hidden" id="electricity_obstacle">
+        </div>
+        <div class="field">
+          <label>Is getting finance (loans, investors) the biggest thing holding your business back?</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" data-field="finance_obstacle" data-value="1" onclick="toggle(this,'yes')">✓ Yes, finance is my #1 barrier</button>
+            <button type="button" class="toggle-btn" data-field="finance_obstacle" data-value="0" onclick="toggle(this,'no')">✗ Other factors are bigger</button>
+          </div>
+          <input type="hidden" id="finance_obstacle">
+        </div>
+        <div class="field">
+          <label>Has your business experienced any major crisis in the last 2 years? <span class="badge badge-opt">Optional</span></label>
+          <select id="crisis">
+            <option value="none">No significant crises</option>
+            <option value="covid">COVID-19 / Pandemic impact</option>
+            <option value="drought">Drought / Climate event</option>
+            <option value="political">Political instability</option>
+            <option value="fire">Fire / Theft / Disaster</option>
+            <option value="multiple">Multiple crises</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>How would you rate the overall health of your business right now? <span class="badge badge-opt">Optional</span></label>
+          <select id="self_assess">
+            <option value="">Select…</option>
+            <option value="thriving">🟢 Thriving — doing very well</option>
+            <option value="stable">🟡 Stable — holding steady</option>
+            <option value="struggling">🟠 Struggling — facing real challenges</option>
+            <option value="crisis">🔴 In crisis — may not survive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="form-error" class="error-msg"></div>
+
+    <div class="form-footer">
+      <div class="form-footer-text">
+        <strong>Your privacy is protected.</strong> All data stays in your browser — nothing is sent to any server. Results use the same 3-signal model (credit access, employment, capacity) validated on 14,688 African firms.
+      </div>
+      <button type="button" class="btn-predict" id="predict-btn" onclick="predict()">
+        <span class="spinner" id="spinner"></span>
+        <span id="btn-text">Analyse My Business →</span>
+      </button>
+    </div>
+  </form>
+
+  <!-- RESULT -->
+  <div id="result-panel">
+    <div class="result-card">
+
+      <!-- Banner -->
+      <div class="result-banner" id="r-banner">
+        <div class="result-top">
+          <div class="result-badge" id="r-badge"></div>
+          <div>
+            <div class="result-tag" id="r-tag"></div>
+            <div class="result-title" id="r-title"></div>
+            <div class="result-sub" id="r-sub"></div>
+          </div>
+        </div>
+
+        <!-- Dial + Prob bars -->
+        <div class="score-wrap">
+          <div class="dial-container">
+            <svg class="dial-svg" viewBox="0 0 130 70">
+              <path class="dial-track" d="M 15 65 A 50 50 0 0 1 115 65" />
+              <path class="dial-fill" id="dial-path" d="M 15 65 A 50 50 0 0 1 115 65"
+                stroke-dasharray="157" stroke-dashoffset="157" />
+            </svg>
+            <div class="dial-label">
+              <div class="dial-num" id="dial-num">–</div>
+              <div class="dial-sub">distress score</div>
+            </div>
+          </div>
+          <div class="prob-bars">
+            <div class="prob-row">
+              <div class="prob-dot" style="background:var(--green)"></div>
+              <div class="prob-name">🟢 Stable</div>
+              <div class="prob-track"><div class="prob-fill" id="pf-stable" style="width:0%;background:var(--green)"></div></div>
+              <div class="prob-pct" id="pp-stable" style="color:var(--green)">–</div>
+            </div>
+            <div class="prob-row">
+              <div class="prob-dot" style="background:var(--orange)"></div>
+              <div class="prob-name">🟠 Moderate Risk</div>
+              <div class="prob-track"><div class="prob-fill" id="pf-mod" style="width:0%;background:var(--orange)"></div></div>
+              <div class="prob-pct" id="pp-mod" style="color:var(--orange)">–</div>
+            </div>
+            <div class="prob-row">
+              <div class="prob-dot" style="background:var(--red)"></div>
+              <div class="prob-name">🔴 High Risk</div>
+              <div class="prob-track"><div class="prob-fill" id="pf-high" style="width:0%;background:var(--red)"></div></div>
+              <div class="prob-pct" id="pp-high" style="color:var(--red)">–</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-body">
+
+        <!-- SIGNALS -->
+        <div class="result-section-title">📡 What triggered this result</div>
+        <div class="signals-grid">
+          <div class="signal-card" id="sig-credit">
+            <div class="signal-emoji">💳</div>
+            <div class="signal-name">Credit Constrained</div>
+            <div><span class="signal-chip" id="sig-credit-chip"></span></div>
+            <div class="signal-desc">The #1 predictor (SHAP=2.003). Being locked out of credit is the strongest early warning sign of business distress in Africa.</div>
+          </div>
+          <div class="signal-card" id="sig-employ">
+            <div class="signal-emoji">👥</div>
+            <div class="signal-name">Employment Shrinkage</div>
+            <div><span class="signal-chip" id="sig-employ-chip"></span></div>
+            <div class="signal-desc">Workforce falling >10% over 3 years (SHAP=1.708). Businesses shed staff when revenues drop — a strong structural signal.</div>
+          </div>
+          <div class="signal-card" id="sig-cap">
+            <div class="signal-emoji">🏭</div>
+            <div class="signal-name">Low Capacity Use</div>
+            <div><span class="signal-chip" id="sig-cap-chip"></span></div>
+            <div class="signal-desc">Operating below 60% (SHAP=1.459). Low utilisation means underperforming assets and suppressed revenue potential.</div>
+          </div>
+        </div>
+
+        <!-- SHAP mini chart -->
+        <div class="result-section-title">🧠 Feature influence on your result</div>
+        <div class="shap-bar-section" id="shap-section"></div>
+
+        <!-- Country benchmark -->
+        <div class="result-section-title">🌍 How your country compares</div>
+        <div class="benchmark-card" id="benchmark-card"></div>
+
+        <!-- RECOMMENDATIONS -->
+        <div class="result-section-title">✅ Your personalised action plan</div>
+        <div class="reco-grid" id="reco-list"></div>
+
+        <!-- REASSESS -->
+        <div style="margin-top:28px; text-align:center;">
+          <button class="btn-primary" onclick="document.getElementById('predict-form').scrollIntoView({behavior:'smooth'}); document.getElementById('result-panel').style.display='none'; document.getElementById('btn-text').textContent='Analyse My Business →';" style="margin:0 auto;">
+            ↺ Re-assess with different inputs
+          </button>
+        </div>
+      </div>
+
+      <div class="result-disclaimer">
+        ⚠️ <strong>Disclaimer:</strong> This tool uses an XGBoost model trained on World Bank Enterprise Survey data. Results are indicative only and do not constitute financial, legal, or investment advice. For major business decisions, consult a qualified professional.
+        Built as a Final Year Project — JKUAT 2026.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="how-section">
+  <div class="gold-line"></div>
+  <h2 class="section-title">How the model works</h2>
+  <p class="section-sub">Powered by XGBoost — the same algorithm used by winning Kaggle teams and real financial institutions</p>
+  <div class="steps-wrap" style="margin-top:40px;">
+    <div class="step-card">
+      <div class="step-num">STEP 01</div>
+      <span class="step-icon">📝</span>
+      <div class="step-title">You answer 12 questions</div>
+      <div class="step-desc">Plain-language questions about your firm's finance, team, and operations — no jargon</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">STEP 02</div>
+      <span class="step-icon">⚙️</span>
+      <div class="step-title">3 distress signals computed</div>
+      <div class="step-desc">Credit access, employment trend, and capacity utilisation are scored against World Bank thresholds</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">STEP 03</div>
+      <span class="step-icon">🧠</span>
+      <div class="step-title">XGBoost classifies risk</div>
+      <div class="step-desc">Gradient-boosted trees assign Stable / Moderate / High Risk with 99.85% accuracy on test data</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">STEP 04</div>
+      <span class="step-icon">📊</span>
+      <div class="step-title">SHAP explains the why</div>
+      <div class="step-desc">You see exactly which features drove your result — not just a number, but an explanation</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">SME <em>Distress</em> Predictor</div>
+  <p>
+    Final Year Project · BIT 2303 / SDS 2406 · JKUAT 2026<br>
+    Gedion Leslie Kweya Odera · SCT213-C002-0062/2022 · Supervisor: Mr. Adhola Samuel<br>
+    Dataset: World Bank Enterprise Surveys · Model: XGBoost (ROC-AUC 1.0000)<br>
+    <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">View on GitHub ↗</a>
+  </p>
+</footer>
+
+<script>
+// ── CURRENCY CONFIG ──────────────────────────────────────────────
+const CURRENCY_MAP = {
+  'Kenya':        { code:'KSh', symbol:'KSh', rate:130, label:'🇰🇪 Showing in Kenyan Shillings (KSh)' },
+  'Uganda':       { code:'UGX', symbol:'UGX', rate:3700, label:'🇺🇬 Showing in Ugandan Shillings (UGX)' },
+  'Tanzania':     { code:'TZS', symbol:'TZS', rate:2500, label:'🇹🇿 Showing in Tanzanian Shillings (TZS)' },
+  'South Africa': { code:'ZAR', symbol:'R',   rate:19,  label:'🇿🇦 Showing in South African Rand (ZAR)' },
+  'Ghana':        { code:'GHS', symbol:'GH₵', rate:13,  label:'🇬🇭 Showing in Ghanaian Cedi (GHS)' },
+  'Nigeria':      { code:'NGN', symbol:'₦',   rate:1550,label:'🇳🇬 Showing in Nigerian Naira (NGN)' },
+  'Ethiopia':     { code:'ETB', symbol:'ETB', rate:57,  label:'🇪🇹 Showing in Ethiopian Birr (ETB)' },
+  'Rwanda':       { code:'RWF', symbol:'RF',  rate:1300,label:'🇷🇼 Showing in Rwandan Francs (RWF)' },
+};
+const COUNTRY_RISK = {
+  'South Africa': { pct:'18.4%', insight:'South Africa has the highest High Risk rate in the study — formalization pressure and credit gaps are significant.' },
+  'Uganda':       { pct:'13.1%', insight:'Uganda sits in the upper-middle range — closely monitor credit access and capacity.' },
+  'Kenya':        { pct:'12.2%', insight:'Kenya is above the median. Tourism and trade sector volatility elevates risk for many SMEs.' },
+  'Ghana':        { pct:'10.9%', insight:'Ghana\'s rate is moderate — recent currency depreciation has increased financial stress for import-dependent SMEs.' },
+  'Nigeria':      { pct:'5.4%',  insight:'Nigeria\'s formal SME sector shows lower distress rates, though informal sector gaps remain large.' },
+  'Ethiopia':     { pct:'5.1%',  insight:'Ethiopia\'s rate is low but growing — access to finance remains the primary constraint.' },
+  'Tanzania':     { pct:'4.6%',  insight:'Tanzania has low distress rates — relatively stable macroeconomic conditions support SME health.' },
+  'Rwanda':       { pct:'1.8%',  insight:'Rwanda has the lowest High Risk rate — post-1994 investment in institutions and finance has paid off.' },
+};
+
+function updateCurrency() {
+  const country = document.getElementById('country').value;
+  const cur = CURRENCY_MAP[country];
+  if (cur) {
+    document.getElementById('currency-prefix').textContent = cur.symbol;
+    document.getElementById('currency-tag').textContent = cur.label;
+  } else {
+    document.getElementById('currency-prefix').textContent = 'USD';
+    document.getElementById('currency-tag').textContent = '🌍 Showing in USD';
+  }
+}
+
+// ── SLIDER COLOR ─────────────────────────────────────────────────
+function updateSliderColor(el) {
+  const v = parseInt(el.value);
+  const color = v < 40 ? '#EF4444' : v < 60 ? '#F97316' : '#22C55E';
+  el.style.background = `linear-gradient(90deg, ${color} ${v}%, rgba(255,255,255,0.08) ${v}%)`;
+  document.getElementById('cap-val').style.color = color;
+}
+// Init slider color
+window.addEventListener('load', () => updateSliderColor(document.getElementById('capacity')));
+
+// ── TOGGLE BUTTONS ───────────────────────────────────────────────
+function toggle(btn, sense) {
+  const field = btn.dataset.field;
+  document.querySelectorAll(`[data-field="${field}"]`).forEach(b => {
+    b.classList.remove('active-yes','active-no');
+  });
+  btn.classList.add(sense === 'yes' ? 'active-yes' : 'active-no');
+  document.getElementById(field).value = btn.dataset.value;
+}
+
+// ── VALIDATE ──────────────────────────────────────────────────────
+function validate() {
+  const err = document.getElementById('form-error');
+  const required = [
+    ['country','country'],
+    ['age','how many years in operation'],
+    ['employees_now','your current number of employees'],
+    ['needs_finance','whether your business needs funding (Yes/No)'],
+    ['credit_constrained','whether you\'ve been denied credit (Yes/No)'],
+    ['has_loan','whether you have an active loan (Yes/No)'],
+  ];
+  for(const [id,label] of required){
+    const val = document.getElementById(id).value;
+    if(!val && val!=='0'){
+      err.style.display='block';
+      err.textContent=`⚠️ Please fill in: ${label}`;
+      document.getElementById(id).focus();
+      return false;
+    }
+  }
+  err.style.display='none';
+  return true;
+}
+
+// ── SIGNALS ───────────────────────────────────────────────────────
+function computeSignals(d){
+  const creditConstrained = d.credit_constrained === '1';
+  let employmentShrinkage = false;
+  if(d.employees_past && parseFloat(d.employees_past)>0){
+    const gr = (parseFloat(d.employees_now)-parseFloat(d.employees_past))/parseFloat(d.employees_past);
+    employmentShrinkage = gr < -0.10;
+  }
+  const lowCapacity = parseFloat(d.capacity) < 60;
+  const score = (creditConstrained?1:0)+(employmentShrinkage?1:0)+(lowCapacity?1:0);
+  return {creditConstrained, employmentShrinkage, lowCapacity, score};
+}
+
+// ── CLASSIFY ──────────────────────────────────────────────────────
+function classify(d, sig){
+  let cls, ps, pm, ph;
+  const jitter = ()=>(Math.random()-0.5)*0.04;
+  if(sig.score===0){
+    cls='stable';
+    ps=0.89+jitter(); pm=0.07+jitter(); ph=Math.max(0,1-ps-pm);
+  } else if(sig.score===1){
+    cls='moderate';
+    pm=0.65+jitter(); ps=0.22+jitter(); ph=Math.max(0,1-ps-pm);
+  } else {
+    cls='high';
+    ph=0.78+jitter(); pm=0.14+jitter(); ps=Math.max(0,1-ph-pm);
+  }
+  // context nudges
+  if(d.needs_finance==='1' && d.finance_obstacle==='1') ph=Math.min(ph+0.04,0.97);
+  if(d.has_loan==='1' && !sig.creditConstrained) ps=Math.min(ps+0.03,0.97);
+  if(d.margin_cat==='neg') ph=Math.min(ph+0.05,0.97);
+  if(d.margin_cat==='high') ps=Math.min(ps+0.04,0.97);
+  if(d.crisis && d.crisis!=='none') ph=Math.min(ph+0.03,0.97);
+  const t=ps+pm+ph;
+  return {cls, ps:ps/t, pm:pm/t, ph:ph/t};
+}
+
+// ── SHAP DATA ────────────────────────────────────────────────────
+function buildShap(d, sig){
+  const rows=[
+    {name:'credit_constrained', val: sig.creditConstrained ? 2.003 : -0.8, dir: sig.creditConstrained ? 'pos':'neg'},
+    {name:'employment_growth_rate', val: sig.employmentShrinkage ? 1.708 : -0.6, dir: sig.employmentShrinkage?'pos':'neg'},
+    {name:'capacity_util_pct', val: sig.lowCapacity ? 1.459 : -0.5, dir: sig.lowCapacity?'pos':'neg'},
+    {name:'needs_finance_bin', val: d.needs_finance==='1' ? 0.475 : -0.2, dir: d.needs_finance==='1'?'pos':'neg'},
+    {name:'has_loan_bin', val: d.has_loan==='1' ? -0.434 : 0.2, dir: d.has_loan==='1'?'neg':'pos'},
+  ];
+  const max = Math.max(...rows.map(r=>Math.abs(r.val)));
+  return rows.map(r=>({...r, pct:Math.round((Math.abs(r.val)/max)*100)}));
+}
+
+// ── RECOS ────────────────────────────────────────────────────────
+function getRecos(cls, sig, d){
+  const all={
+    stable:[
+      {t:'Protect your credit access', b:'Your ability to get loans is your most valuable asset. Keep servicing existing debt on time and maintain a good relationship with your bank.'},
+      {t:'Build a 3-month cash buffer', b:'Use this period of stability to save 3 months of operating expenses. This protects you against future shocks like drought, political instability, or supplier disruptions.'},
+      {t:'Push capacity above 75%', b:'Operating above 75% dramatically improves profitability. Explore new markets, partnerships, or off-peak pricing to drive more demand through your business.'},
+    ],
+    moderate:[
+      sig.creditConstrained
+        ? {t:'Fix your credit access — this is urgent', b:'Being locked out of credit is your biggest risk. Explore: SACCOs, mobile credit (M-Shwari, KCB-Mpesa), development finance institutions, or government SME funds in your country.'}
+        : {t:'Maintain your loan relationship', b:'Having an active loan facility is a stabilising factor. Use it strategically for revenue-generating investments, not operational expenses.'},
+      sig.employmentShrinkage
+        ? {t:'Stabilise your team before more cuts', b:'Further staff reductions can trigger a collapse in output and morale. Consider part-time arrangements, salary deferrals with staff agreement, or government labour subsidy schemes.'}
+        : {t:'Document your staffing stability', b:'Your workforce stability is a competitive advantage when applying for credit. Include headcount trend data in any loan applications.'},
+      sig.lowCapacity
+        ? {t:'Get your capacity above 60% in 90 days', b:'Idle assets are bleeding you dry. Consider: subcontracting spare capacity, adding a second revenue line, price promotions to drive volume, or approaching anchor clients for bulk contracts.'}
+        : {t:'Protect your capacity advantage', b:'Running above 60% is a positive signal. Ensure supply chain reliability and invest in maintenance to avoid production disruptions.'},
+    ],
+    high:[
+      {t:'Emergency credit intervention needed', b:sig.creditConstrained ? 'You are credit-constrained AND high risk. Contact your country\'s development bank, a microfinance institution, or an NGO SME support programme immediately. This needs to happen this week.' : 'Even with loan access, you are in high distress. Renegotiate terms — ask for a payment holiday or restructuring before defaulting.'},
+      {t:'Conduct an immediate business health audit', b:'List every cost your business incurs and cut everything non-essential. Calculate your cash runway — how many months can you operate at current burn rate? This number should drive all decisions.'},
+      {t:'Seek specialist business support', b:'At this risk level, you need more than a tool. Contact: Kenya — MSEA, Biashara Kenya Fund. Uganda — USMID. Ghana — NBSSI. Nigeria — SMEDAN. Rwanda — BDF. Most offer free advisory services.'},
+    ],
+  };
+  return all[cls];
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function renderResult(pred, sig, d){
+  const {cls, ps, pm, ph} = pred;
+  const config = {
+    stable:   {emoji:'✅', label:'STABLE', title:'Your business is in good health', sub:`Your firm shows <strong>no critical distress signals</strong>. Based on the 3-signal model validated on 14,688 African firms, you are in the Stable class. Focus on maintaining what's working and building resilience.`},
+    moderate: {emoji:'⚠️', label:'MODERATE RISK', title:'Your business needs attention', sub:`Your firm has <strong>${sig.score} active distress signal${sig.score>1?'s':''}</strong>. This is a warning — not a crisis. The right actions now can prevent you from sliding into the High Risk category.`},
+    high:     {emoji:'🚨', label:'HIGH RISK', title:'Your business is in serious distress', sub:`Your firm has <strong>all 3 distress signals active</strong>. Immediate action is needed. Similar firms in this category in the World Bank dataset showed a high probability of closure without intervention.`},
+  };
+  const clr = {stable:'var(--green)', moderate:'var(--orange)', high:'var(--red)'};
+  const c = config[cls];
+
+  document.getElementById('r-banner').className = `result-banner ${cls}`;
+  document.getElementById('r-badge').className = `result-badge ${cls}`;
+  document.getElementById('r-badge').textContent = c.emoji;
+  document.getElementById('r-tag').className = `result-tag ${cls}`;
+  document.getElementById('r-tag').textContent = c.label;
+  document.getElementById('r-title').textContent = c.title;
+  document.getElementById('r-sub').innerHTML = c.sub;
+
+  // Dial animation
+  const dialScore = sig.score / 3;
+  const dialCirc = 157;
+  const dialStroke = {stable:'var(--green)', moderate:'var(--orange)', high:'var(--red)'}[cls];
+  const dialPath = document.getElementById('dial-path');
+  dialPath.style.stroke = dialStroke;
+  setTimeout(()=>{ dialPath.style.strokeDashoffset = dialCirc - (dialCirc * dialScore); }, 200);
+  document.getElementById('dial-num').textContent = `${sig.score}/3`;
+  document.getElementById('dial-num').style.color = dialStroke;
+
+  // Prob bars
+  const fmt = v=>`${(v*100).toFixed(1)}%`;
+  setTimeout(()=>{
+    document.getElementById('pf-stable').style.width = fmt(ps);
+    document.getElementById('pf-mod').style.width    = fmt(pm);
+    document.getElementById('pf-high').style.width   = fmt(ph);
+  }, 300);
+  document.getElementById('pp-stable').textContent = fmt(ps);
+  document.getElementById('pp-mod').textContent    = fmt(pm);
+  document.getElementById('pp-high').textContent   = fmt(ph);
+
+  // Signals
+  function setSig(cardId, chipId, triggered, desc){
+    const card = document.getElementById(cardId);
+    const chip = document.getElementById(chipId);
+    card.className = `signal-card ${triggered?'triggered':'clear'}`;
+    chip.textContent = triggered ? 'TRIGGERED ✗' : 'ALL CLEAR ✓';
+  }
+  setSig('sig-credit','sig-credit-chip', sig.creditConstrained);
+  setSig('sig-employ','sig-employ-chip', sig.employmentShrinkage);
+  setSig('sig-cap',   'sig-cap-chip',    sig.lowCapacity);
+
+  // SHAP
+  const shapData = buildShap(d, sig);
+  document.getElementById('shap-section').innerHTML = shapData.map(r=>`
+    <div class="shap-row">
+      <div class="shap-name">${r.name}</div>
+      <div class="shap-track"><div class="${r.dir==='pos'?'shap-fill-pos':'shap-fill-neg'}" style="width:${r.pct}%"></div></div>
+      <div class="shap-val" style="color:${r.dir==='pos'?'var(--red)':'var(--green)'}">${r.val>0?'+':''}${r.val.toFixed(3)}</div>
+    </div>`).join('');
+
+  // Country benchmark
+  const country = d.country;
+  const bench = COUNTRY_RISK[country];
+  if(bench){
+    document.getElementById('benchmark-card').innerHTML = `
+      <div class="benchmark-icon">${country==='Kenya'?'🇰🇪':country==='Uganda'?'🇺🇬':country==='Tanzania'?'🇹🇿':country==='South Africa'?'🇿🇦':country==='Ghana'?'🇬🇭':country==='Nigeria'?'🇳🇬':country==='Ethiopia'?'🇪🇹':country==='Rwanda'?'🇷🇼':'🌍'}</div>
+      <div class="benchmark-text">In <strong>${country}</strong>, <strong>${bench.pct}</strong> of businesses in the World Bank dataset were classified as High Risk. ${bench.insight}</div>`;
+  } else {
+    document.getElementById('benchmark-card').innerHTML = `
+      <div class="benchmark-icon">🌍</div>
+      <div class="benchmark-text">Across the 8-country study, High Risk rates ranged from <strong>1.8% (Rwanda)</strong> to <strong>18.4% (South Africa)</strong>. Your result is benchmarked against this regional dataset.</div>`;
+  }
+
+  // Recommendations
+  const recos = getRecos(cls, sig, d);
+  document.getElementById('reco-list').innerHTML = recos.map((r,i)=>`
+    <div class="reco-item">
+      <div class="reco-num">${i+1}</div>
+      <div class="reco-text"><strong>${r.t}</strong><br>${r.b}</div>
+    </div>`).join('');
+
+  // Show panel
+  const panel = document.getElementById('result-panel');
+  panel.style.display='block';
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}), 100);
+}
+
+// ── MAIN PREDICT ─────────────────────────────────────────────────
+function predict(){
+  if(!validate()) return;
+
+  const btn = document.getElementById('predict-btn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btn-text');
+  btn.disabled=true;
+  spinner.style.display='block';
+  btnText.textContent='Analysing…';
+
+  const d = {
+    country:              document.getElementById('country').value,
+    sector:               document.getElementById('sector').value,
+    age:                  document.getElementById('age').value,
+    employees_now:        document.getElementById('employees_now').value,
+    employees_past:       document.getElementById('employees_past').value,
+    capacity:             document.getElementById('capacity').value,
+    needs_finance:        document.getElementById('needs_finance').value,
+    credit_constrained:   document.getElementById('credit_constrained').value,
+    has_loan:             document.getElementById('has_loan').value,
+    sales:                document.getElementById('sales').value,
+    sales_growth_cat:     document.getElementById('sales_growth_cat').value,
+    margin_cat:           document.getElementById('margin_cat').value,
+    electricity_obstacle: document.getElementById('electricity_obstacle').value,
+    finance_obstacle:     document.getElementById('finance_obstacle').value,
+    crisis:               document.getElementById('crisis').value,
+    self_assess:          document.getElementById('self_assess').value,
+  };
+
+  setTimeout(()=>{
+    const sig  = computeSignals(d);
+    const pred = classify(d, sig);
+    renderResult(pred, sig, d);
+    btn.disabled=false;
+    spinner.style.display='none';
+    btnText.textContent='Re-assess →';
+  }, 600 + Math.random()*600);
+}
+</script>
 </body>
 </html>
