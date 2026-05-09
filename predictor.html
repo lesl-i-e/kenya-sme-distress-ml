@@ -116,6 +116,14 @@
             width: 100%;
         }
 
+        nav a.active {
+            color: var(--primary);
+        }
+
+        nav a.active::after {
+            width: 100%;
+        }
+
         /* Breadcrumb */
         .breadcrumb {
             max-width: 1400px;
@@ -220,5 +228,20 @@
             Built with XGBoost, SHAP, and scikit-learn. Data from World Bank Enterprise Surveys.
         </p>
     </footer>
+
+    <script>
+        // Automatically mark the current page navigation link as active
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            const navLinks = document.querySelectorAll('nav a');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

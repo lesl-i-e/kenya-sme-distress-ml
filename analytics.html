@@ -94,11 +94,34 @@
             font-weight: 500;
             font-size: 0.9rem;
             transition: all 0.3s ease;
+            position: relative;
         }
 
-        nav a:hover,
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
         nav a.active {
             color: var(--primary);
+        }
+
+        nav a.active::after {
+            width: 100%;
         }
 
         /* Breadcrumb */
@@ -147,6 +170,26 @@
             font-size: 1.1rem;
         }
 
+        /* Back Button */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-lighter);
+            color: var(--primary);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid var(--primary-light);
+        }
+
+        .back-link:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(-4px);
+        }
+
         /* Footer */
         footer {
             background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
@@ -172,26 +215,6 @@
         footer a:hover {
             color: white;
             border-bottom-color: white;
-        }
-
-        /* Back Button */
-        .back-link {
-            display: inline-block;
-            margin-bottom: 2rem;
-            padding: 0.5rem 1rem;
-            background: var(--bg-lighter);
-            color: var(--primary);
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 1px solid var(--primary-light);
-        }
-
-        .back-link:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateX(-4px);
         }
 
         /* Responsive */
@@ -227,7 +250,7 @@
             </a>
             <nav>
                 <a href="index.html">Home</a>
-                <a href="analytics.html" class="active">Analytics</a>
+                <a href="analytics.html">Analytics</a>
                 <a href="geography.html">Geography</a>
                 <a href="predictor.html">Predictor</a>
                 <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">GitHub</a>
@@ -261,5 +284,20 @@
             Built with XGBoost, SHAP, and scikit-learn. Data from World Bank Enterprise Surveys.
         </p>
     </footer>
+
+    <script>
+        // Automatically mark the current page navigation link as active
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            const navLinks = document.querySelectorAll('nav a');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

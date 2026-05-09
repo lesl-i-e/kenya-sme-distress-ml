@@ -114,6 +114,14 @@
             width: 100%;
         }
 
+        nav a.active {
+            color: var(--primary);
+        }
+
+        nav a.active::after {
+            width: 100%;
+        }
+
         /* Hero Section */
         .hero {
             max-width: 1400px;
@@ -636,5 +644,21 @@
             <p>&copy; 2026 SME Business Distress Prediction. Created by Gedion Leslie Kweya Odera. Built with ❤️ for East African SMEs.</p>
         </div>
     </footer>
+
+    <script>
+        // Automatically mark the current page navigation link as active
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            const navLinks = document.querySelectorAll('nav a');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Match current page (index.html or just index, also handle root /)
+                if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
