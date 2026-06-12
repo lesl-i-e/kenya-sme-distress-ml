@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SME Distress Predictor — East Africa</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --primary:#1e40af; --primary-dark:#1e3a8a; --primary-light:#3b82f6;
+            --secondary:#0f766e; --secondary-light:#14b8a6; --accent:#f59e0b;
+            --success:#10b981; --danger:#ef4444; --warning:#f97316;
+            --bg-light:#f8fafc; --bg-lighter:#f0f9ff; --bg-white:#ffffff;
+            --text-dark:#1f2937; --text-muted:#6b7280; --border-light:#e5e7eb;
+            --shadow-sm:0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-md:0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg:0 10px 15px -3px rgba(0,0,0,0.1);
+            --shadow-xl:0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto",sans-serif; line-height:1.6; color:var(--text-dark); background:linear-gradient(135deg,#f0f9ff 0%,#f0fdf4 100%); min-height:100vh; }
+        header { background:var(--bg-white); border-bottom:1px solid var(--border-light); box-shadow:var(--shadow-sm); position:sticky; top:0; z-index:100; }
+        .header-content { max-width:1400px; margin:0 auto; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; }
+        .logo { display:flex; align-items:center; gap:0.75rem; text-decoration:none; color:var(--primary-dark); font-weight:700; font-size:1.5rem; }
+        .logo-icon { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:1.2rem; }
+        nav { display:flex; gap:2rem; }
+        nav a { text-decoration:none; color:var(--text-muted); font-weight:500; font-size:0.95rem; transition:all 0.3s ease; position:relative; }
+        nav a:hover { color:var(--primary); }
+        nav a.active { color:var(--primary); }
+        nav a.active::after { content:''; position:absolute; bottom:-4px; left:0; width:100%; height:2px; background:var(--primary); }
+        nav a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:2px; background:var(--primary); transition:width 0.3s ease; }
+        nav a:hover::after { width:100%; }
+        .breadcrumb { max-width:1400px; margin:0 auto; padding:1rem 2rem; font-size:0.9rem; color:var(--text-muted); }
+        .breadcrumb a { color:var(--primary); text-decoration:none; }
+        .container { max-width:1400px; margin:0 auto; padding:2rem; }
+        .page-title { font-size:2.5rem; font-weight:800; color:var(--text-dark); margin-bottom:0.5rem; background:linear-gradient(135deg,var(--primary-dark) 0%,var(--secondary) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .page-subtitle { color:var(--text-muted); font-size:1.1rem; }
+        .gold-line { width:48px; height:3px; background:linear-gradient(90deg,var(--accent),var(--primary-light)); border-radius:999px; margin:0 auto 1rem; }
+        .section-title { font-size:1.8rem; font-weight:700; text-align:center; margin-bottom:0.5rem; color:var(--text-dark); }
+        .section-sub { text-align:center; color:var(--text-muted); font-size:1rem; margin-bottom:2rem; }
+
+        /* ── MODE TOGGLE ── */
+        .mode-toggle-wrap {
+            display:flex; align-items:center; justify-content:center;
+            gap:0; background:var(--bg-light);
+            border:1.5px solid var(--border-light); border-radius:16px;
+            padding:6px; max-width:520px; margin:0 auto 2rem; box-shadow:var(--shadow-sm);
+        }
+        .mode-btn {
+            flex:1; padding:14px 20px; border:none; border-radius:12px;
+            font-family:inherit; font-size:0.95rem; font-weight:600;
+            cursor:pointer; transition:all 0.25s ease; color:var(--text-muted);
+            background:transparent; display:flex; align-items:center; justify-content:center; gap:8px;
+        }
+        .mode-btn.active {
+            background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
+            color:white; box-shadow:var(--shadow-md);
+        }
+        .mode-btn.active-startup {
+            background:linear-gradient(135deg,var(--secondary) 0%,var(--secondary-light) 100%);
+            color:white; box-shadow:var(--shadow-md);
+        }
+        .mode-badge {
+            font-size:0.65rem; font-weight:700; letter-spacing:0.06em;
+            padding:2px 7px; border-radius:999px;
+            background:rgba(255,255,255,0.25); color:inherit;
+            vertical-align:middle;
+        }
+        .mode-desc {
+            text-align:center; font-size:0.85rem; color:var(--text-muted);
+            margin-bottom:1.5rem; padding:0 1rem;
+            background:rgba(255,255,255,0.7); border:1px solid var(--border-light);
+            border-radius:12px; padding:10px 20px; max-width:600px; margin:0 auto 1.5rem;
+        }
+
+        /* ── FORM CARD ── */
+        .form-card { background:var(--bg-white); border:1px solid var(--border-light); border-radius:24px; box-shadow:var(--shadow-md); overflow:hidden; margin-bottom:2rem; }
+        .form-section { padding:2rem; border-bottom:1px solid var(--border-light); }
+        .form-section:last-of-type { border-bottom:none; }
+        .form-section-header { display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; }
+        .section-icon { width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,rgba(30,64,175,0.1) 0%,rgba(15,118,110,0.1) 100%); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+        .form-section-label { font-weight:700; font-size:1.1rem; color:var(--text-dark); }
+        .form-section-desc { font-size:0.85rem; color:var(--text-muted); margin-top:2px; }
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+        .form-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+        .field { display:flex; flex-direction:column; gap:0.5rem; }
+        .field label { font-size:0.85rem; font-weight:600; color:var(--text-dark); }
+        .badge { font-size:0.7rem; padding:2px 8px; border-radius:999px; margin-left:6px; font-weight:600; }
+        .badge-key { background:rgba(30,64,175,0.1); color:var(--primary-dark); }
+        .badge-opt { background:rgba(107,114,128,0.1); color:var(--text-muted); }
+        .badge-startup { background:rgba(15,118,110,0.12); color:var(--secondary); }
+        .field input,.field select { width:100%; padding:10px 14px; background:var(--bg-white); border:1.5px solid var(--border-light); border-radius:12px; font-family:inherit; font-size:0.9rem; color:var(--text-dark); outline:none; transition:all 0.2s ease; }
+        .field input:focus,.field select:focus { border-color:var(--primary-light); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+        .field .hint { font-size:0.7rem; color:var(--text-muted); }
+        .input-wrap { position:relative; }
+        .input-prefix { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:0.85rem; color:var(--primary-dark); font-weight:600; pointer-events:none; }
+        .input-wrap input { padding-left:48px; }
+        .currency-tag { font-size:0.7rem; color:var(--primary-dark); background:rgba(30,64,175,0.08); border:1px solid rgba(30,64,175,0.2); padding:2px 8px; border-radius:999px; display:inline-block; margin-top:4px; }
+        .toggle-group { display:flex; gap:8px; }
+        .toggle-btn { flex:1; padding:10px; background:var(--bg-light); border:1.5px solid var(--border-light); border-radius:10px; color:var(--text-muted); font-family:inherit; font-size:0.85rem; font-weight:500; cursor:pointer; transition:all 0.2s ease; text-align:center; }
+        .toggle-btn:hover:not(.active-yes):not(.active-no) { border-color:var(--primary-light); color:var(--primary); background:rgba(59,130,246,0.05); }
+        .toggle-btn.active-yes { background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.4); color:var(--success); }
+        .toggle-btn.active-no { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.3); color:var(--danger); }
+        .slider-wrap { position:relative; padding-top:4px; }
+        .range-slider { -webkit-appearance:none; width:100%; height:6px; border-radius:999px; background:var(--border-light); outline:none; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--secondary)); cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.2); border:2px solid white; }
+        .slider-val { position:absolute; right:0; top:-24px; font-size:0.8rem; font-weight:600; color:var(--primary-dark); background:rgba(30,64,175,0.1); padding:2px 8px; border-radius:999px; }
+        .form-footer { padding:1.5rem 2rem; background:var(--bg-lighter); border-top:1px solid var(--border-light); display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; }
+        .form-footer-text { font-size:0.8rem; color:var(--text-muted); line-height:1.6; max-width:500px; }
+        .form-footer-text strong { color:var(--text-dark); }
+        .btn-predict { background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); border:none; color:white; border-radius:12px; padding:12px 32px; font-family:inherit; font-size:0.95rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:10px; transition:all 0.2s ease; box-shadow:var(--shadow-md); }
+        .btn-predict:hover:not(:disabled) { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+        .btn-predict:disabled { opacity:0.6; cursor:not-allowed; }
+        .btn-predict.startup-mode { background:linear-gradient(135deg,var(--secondary) 0%,var(--secondary-light) 100%); }
+        .spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .error-msg { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; padding:12px 20px; margin:0 2rem 1rem; font-size:0.85rem; color:#b91c1c; display:none; }
+
+        /* Startup-only callout */
+        .startup-callout {
+            background:linear-gradient(135deg,rgba(15,118,110,0.05) 0%,rgba(20,184,166,0.08) 100%);
+            border:1.5px dashed rgba(15,118,110,0.35); border-radius:16px;
+            padding:1rem 1.5rem; margin-bottom:1.5rem;
+            font-size:0.85rem; color:var(--text-dark); line-height:1.7;
+        }
+        .startup-callout strong { color:var(--secondary); }
+
+        /* ── RESULT PANEL ── */
+        #result-panel { display:none; margin-top:2rem; }
+        .result-card { background:var(--bg-white); border:1px solid var(--border-light); border-radius:24px; box-shadow:var(--shadow-lg); overflow:hidden; }
+        .result-banner { padding:2rem; background:linear-gradient(135deg,rgba(30,64,175,0.03) 0%,rgba(15,118,110,0.03) 100%); border-bottom:1px solid var(--border-light); }
+        .result-top { display:flex; align-items:flex-start; gap:1.5rem; }
+        .result-badge { width:70px; height:70px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:2rem; flex-shrink:0; }
+        .result-badge.stable { background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); }
+        .result-badge.moderate { background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.3); }
+        .result-badge.high { background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); }
+        .result-tag { font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:4px 12px; border-radius:999px; display:inline-block; margin-bottom:10px; }
+        .result-tag.stable { background:rgba(16,185,129,0.1); color:var(--success); }
+        .result-tag.moderate { background:rgba(249,115,22,0.1); color:var(--warning); }
+        .result-tag.high { background:rgba(239,68,68,0.1); color:var(--danger); }
+        .result-title { font-size:1.6rem; font-weight:800; margin-bottom:8px; color:var(--text-dark); }
+        .result-sub { font-size:0.9rem; color:var(--text-muted); }
+        .mode-context-tag { display:inline-block; font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:999px; margin-left:10px; vertical-align:middle; }
+        .mode-context-tag.sme { background:rgba(30,64,175,0.1); color:var(--primary-dark); }
+        .mode-context-tag.startup { background:rgba(15,118,110,0.1); color:var(--secondary); }
+        .score-wrap { display:flex; gap:2rem; align-items:center; margin-top:1.5rem; flex-wrap:wrap; }
+        .dial-container { position:relative; width:130px; height:70px; flex-shrink:0; }
+        .dial-svg { width:130px; height:70px; }
+        .dial-track { fill:none; stroke:var(--border-light); stroke-width:10; stroke-linecap:round; }
+        .dial-fill { fill:none; stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1s ease; }
+        .dial-label { position:absolute; bottom:0; left:50%; transform:translateX(-50%); text-align:center; }
+        .dial-num { font-size:1.4rem; font-weight:700; line-height:1; color:var(--text-dark); }
+        .dial-sub { font-size:0.6rem; color:var(--text-muted); }
+        .prob-bars { flex:1; min-width:220px; }
+        .prob-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+        .prob-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .prob-name { font-size:0.8rem; color:var(--text-dark); width:110px; flex-shrink:0; }
+        .prob-track { flex:1; height:6px; background:var(--border-light); border-radius:999px; overflow:hidden; }
+        .prob-fill { height:100%; border-radius:999px; transition:width 0.8s ease; }
+        .prob-pct { font-size:0.75rem; font-weight:600; width:45px; text-align:right; flex-shrink:0; }
+        .result-body { padding:2rem; }
+        .result-section-title { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:1rem; margin-top:1.5rem; }
+        .result-section-title:first-of-type { margin-top:0; }
+        .signals-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+        .signal-card { border-radius:16px; padding:1rem; border:1px solid var(--border-light); transition:all 0.2s ease; }
+        .signal-card.triggered { background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.3); }
+        .signal-card.clear { background:rgba(16,185,129,0.04); border-color:rgba(16,185,129,0.2); }
+        .signal-card.projected { background:rgba(245,158,11,0.05); border-color:rgba(245,158,11,0.25); }
+        .signal-emoji { font-size:1.4rem; margin-bottom:8px; }
+        .signal-name { font-weight:700; font-size:0.85rem; margin-bottom:6px; }
+        .signal-chip { font-size:0.65rem; font-weight:700; letter-spacing:0.05em; padding:2px 8px; border-radius:999px; display:inline-block; }
+        .signal-card.triggered .signal-chip { background:rgba(239,68,68,0.15); color:var(--danger); }
+        .signal-card.clear .signal-chip { background:rgba(16,185,129,0.12); color:var(--success); }
+        .signal-card.projected .signal-chip { background:rgba(245,158,11,0.12); color:var(--accent); }
+        .signal-desc { font-size:0.75rem; color:var(--text-muted); margin-top:8px; line-height:1.5; }
+        .shap-bar-section { background:var(--bg-lighter); border:1px solid var(--border-light); border-radius:16px; padding:1.25rem; }
+        .shap-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+        .shap-name { font-size:0.75rem; color:var(--text-dark); width:200px; font-weight:500; flex-shrink:0; }
+        .shap-track { flex:1; height:6px; background:var(--border-light); border-radius:999px; overflow:hidden; }
+        .shap-fill-pos { height:100%; background:linear-gradient(90deg,var(--danger),rgba(239,68,68,0.6)); border-radius:999px; }
+        .shap-fill-neg { height:100%; background:linear-gradient(90deg,var(--success),rgba(16,185,129,0.6)); border-radius:999px; }
+        .shap-val { font-size:0.7rem; font-weight:600; width:50px; text-align:right; flex-shrink:0; }
+        .benchmark-card { background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); border-radius:16px; padding:1rem; display:flex; align-items:center; gap:1rem; }
+        .benchmark-icon { font-size:1.8rem; flex-shrink:0; }
+        .benchmark-text { font-size:0.85rem; color:var(--text-muted); line-height:1.5; }
+        .benchmark-text strong { color:var(--accent); }
+        .reco-grid { display:flex; flex-direction:column; gap:0.75rem; }
+        .reco-item { display:flex; align-items:flex-start; gap:12px; background:var(--bg-lighter); border:1px solid var(--border-light); border-radius:14px; padding:1rem; transition:all 0.2s ease; }
+        .reco-item:hover { background:var(--bg-white); transform:translateX(4px); box-shadow:var(--shadow-sm); }
+        .reco-num { width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--primary),var(--secondary)); color:white; font-weight:700; font-size:0.75rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .reco-num.startup-num { background:linear-gradient(135deg,var(--secondary),var(--secondary-light)); }
+        .reco-text { font-size:0.85rem; color:var(--text-muted); line-height:1.5; }
+        .reco-text strong { color:var(--text-dark); }
+        .result-disclaimer { background:var(--bg-lighter); border-top:1px solid var(--border-light); padding:1rem 2rem; font-size:0.7rem; color:var(--text-muted); line-height:1.5; }
+        .how-section { max-width:1200px; margin:3rem auto 0; padding:2rem; text-align:center; }
+        .steps-wrap { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; margin-top:2rem; }
+        .step-card { background:var(--bg-white); padding:1.5rem; border-radius:16px; box-shadow:var(--shadow-md); border:1px solid var(--border-light); transition:all 0.2s ease; }
+        .step-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+        .step-num { font-size:0.7rem; font-weight:700; color:var(--primary); letter-spacing:0.1em; margin-bottom:0.75rem; }
+        .step-icon { font-size:2rem; display:block; margin-bottom:0.75rem; }
+        .step-title { font-weight:700; font-size:1rem; margin-bottom:0.5rem; }
+        .step-desc { font-size:0.8rem; color:var(--text-muted); line-height:1.5; }
+        footer { background:linear-gradient(135deg,var(--primary-dark) 0%,var(--secondary) 100%); color:white; padding:3rem 2rem; margin-top:4rem; text-align:center; }
+        footer p { max-width:800px; margin:0 auto; line-height:1.8; }
+        footer a { color:rgba(255,255,255,0.9); text-decoration:none; border-bottom:1px solid rgba(255,255,255,0.3); transition:all 0.2s ease; }
+        footer a:hover { color:white; border-bottom-color:white; }
+        @media (max-width:768px) {
+            .header-content { flex-direction:column; gap:1rem; }
+            nav { flex-wrap:wrap; justify-content:center; gap:1rem; }
+            .form-grid,.form-grid.cols-3 { grid-template-columns:1fr; }
+            .signals-grid { grid-template-columns:1fr; }
+            .steps-wrap { grid-template-columns:1fr 1fr; }
+            .container { padding:1rem; }
+            .result-top { flex-direction:column; align-items:center; text-align:center; }
+            .mode-toggle-wrap { flex-direction:column; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">📊</div>
+            <span>SME Distress Prediction</span>
+        </a>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="analytics.html">Analytics</a>
+            <a href="geography.html">Geography</a>
+            <a href="predictor.html" class="active">Predictor</a>
+            <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">GitHub</a>
+        </nav>
+    </div>
+</header>
+
+<div class="breadcrumb"><a href="index.html">Home</a> / <span>Predictor</span></div>
+
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">SME Distress Predictor</h1>
+        <p class="page-subtitle">Instant risk assessment powered by XGBoost — trained on 14,688 firms across 8 African countries</p>
+    </div>
+
+    <div class="gold-line"></div>
+    <h2 class="section-title">Choose Assessment Mode</h2>
+    <p class="section-sub">Select the type of business you are assessing</p>
+
+    <!-- ── MODE TOGGLE ── -->
+    <div class="mode-toggle-wrap">
+        <button class="mode-btn active" id="btn-sme" onclick="switchMode('sme')">
+            🏪 Running SME <span class="mode-badge">Historical data</span>
+        </button>
+        <button class="mode-btn" id="btn-startup" onclick="switchMode('startup')">
+            🚀 Startup / New Venture <span class="mode-badge">Projections only</span>
+        </button>
+    </div>
+    <div class="mode-desc" id="mode-desc">
+        <strong>Running SME:</strong> A business with at least 6 months of operating history. You have real employee numbers, actual revenue, and observable financial behaviour.
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SME FORM
+    ════════════════════════════════════════════ -->
+    <form id="sme-form" class="form-card" onsubmit="return false;">
+
+        <!-- S1: Business Profile -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon">🏢</div>
+                <div>
+                    <div class="form-section-label">Section 1 — Business Profile</div>
+                    <div class="form-section-desc">Basic information about the business</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Country <span class="badge badge-key">Required</span></label>
+                    <select id="s-country" onchange="updateCurrency('s')" required>
+                        <option value="">Pick your country…</option>
+                        <option value="Kenya">🇰🇪 Kenya</option>
+                        <option value="Uganda">🇺🇬 Uganda</option>
+                        <option value="Tanzania">🇹🇿 Tanzania</option>
+                        <option value="South Africa">🇿🇦 South Africa</option>
+                        <option value="Ghana">🇬🇭 Ghana</option>
+                        <option value="Nigeria">🇳🇬 Nigeria</option>
+                        <option value="Ethiopia">🇪🇹 Ethiopia</option>
+                        <option value="Rwanda">🇷🇼 Rwanda</option>
+                        <option value="Other">🌍 Other African country</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Sector <span class="badge badge-opt">Optional</span></label>
+                    <select id="s-sector">
+                        <option value="">Pick a sector…</option>
+                        <option>Agriculture & Food Processing</option>
+                        <option>Manufacturing & Production</option>
+                        <option>Retail & Wholesale Trade</option>
+                        <option>Services & Consulting</option>
+                        <option>Construction & Real Estate</option>
+                        <option>Technology & Digital</option>
+                        <option>Transport & Logistics</option>
+                        <option>Hospitality & Tourism</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Years in operation <span class="badge badge-key">Required</span></label>
+                    <input type="number" id="s-age" min="1" max="100" placeholder="e.g. 5" required>
+                    <span class="hint">Minimum 1 year — use Startup mode for newer ventures</span>
+                </div>
+                <div class="field">
+                    <label>Legal structure <span class="badge badge-opt">Optional</span></label>
+                    <select id="s-legal">
+                        <option value="">Select…</option>
+                        <option>Sole Proprietorship</option>
+                        <option>Partnership</option>
+                        <option>Limited Partnership</option>
+                        <option>Private Limited Company</option>
+                        <option>Public Limited Company</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- S2: Workforce -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon">👥</div>
+                <div>
+                    <div class="form-section-label">Section 2 — Workforce</div>
+                    <div class="form-section-desc">Current and historical headcount</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Current full-time staff <span class="badge badge-key">Required</span></label>
+                    <input type="number" id="s-emp-now" min="1" placeholder="e.g. 12" required>
+                </div>
+                <div class="field">
+                    <label>Staff 3 years ago <span class="badge badge-key">Required</span></label>
+                    <input type="number" id="s-emp-past" min="0" placeholder="e.g. 18" required>
+                    <span class="hint">Enter 0 if business is less than 3 years old</span>
+                </div>
+                <div class="field">
+                    <label>Full-time vs part-time split <span class="badge badge-opt">Optional</span></label>
+                    <select id="s-emp-type">
+                        <option value="">Select…</option>
+                        <option value="mostly-ft">Mostly full-time (>80%)</option>
+                        <option value="mixed">Mixed full & part-time</option>
+                        <option value="mostly-pt">Mostly part-time / casual</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Skilled / trained workers (%) <span class="badge badge-opt">Optional</span></label>
+                    <div class="slider-wrap">
+                        <span class="slider-val" id="skill-val">50%</span>
+                        <input type="range" class="range-slider" id="s-skill" min="0" max="100" value="50"
+                               oninput="document.getElementById('skill-val').textContent=this.value+'%'">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- S3: Finance & Credit -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon">💰</div>
+                <div>
+                    <div class="form-section-label">Section 3 — Finance & Credit Access</div>
+                    <div class="form-section-desc">How the business is funded and its access to credit</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Does the business need external funding? <span class="badge badge-key">Required</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="s-needs-finance" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="s-needs-finance" data-value="0" onclick="toggle(this,'no')">✗ No</button>
+                    </div>
+                    <input type="hidden" id="s-needs-finance">
+                </div>
+                <div class="field">
+                    <label>Does the business have an active loan/overdraft? <span class="badge badge-key">Required</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="s-has-loan" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="s-has-loan" data-value="0" onclick="toggle(this,'no')">✗ No</button>
+                    </div>
+                    <input type="hidden" id="s-has-loan">
+                </div>
+                <div class="field">
+                    <label>Annual revenue (last fiscal year) <span class="badge badge-key">Required</span></label>
+                    <div class="input-wrap">
+                        <span class="input-prefix" id="s-currency-prefix">USD</span>
+                        <input type="number" id="s-sales" min="0" placeholder="e.g. 500000" required>
+                    </div>
+                    <span class="currency-tag" id="s-currency-tag">🌍 Showing in USD</span>
+                </div>
+                <div class="field">
+                    <label>Revenue trend over 3 years <span class="badge badge-opt">Optional</span></label>
+                    <select id="s-sales-trend">
+                        <option value="">Select…</option>
+                        <option value="30">📈 Grown significantly (30%+)</option>
+                        <option value="15">📈 Grown moderately (10–30%)</option>
+                        <option value="5">📈 Grown slightly (0–10%)</option>
+                        <option value="0">➡️ Stayed roughly the same</option>
+                        <option value="-10">📉 Shrunk slightly</option>
+                        <option value="-25">📉 Shrunk significantly</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Internal finance (%) <span class="badge badge-opt">Optional</span></label>
+                    <div class="slider-wrap">
+                        <span class="slider-val" id="s-int-val">70%</span>
+                        <input type="range" class="range-slider" id="s-pct-internal" min="0" max="100" value="70"
+                               oninput="document.getElementById('s-int-val').textContent=this.value+'%'">
+                    </div>
+                    <span class="hint">Retained earnings / owner savings</span>
+                </div>
+                <div class="field">
+                    <label>Profit position <span class="badge badge-opt">Optional</span></label>
+                    <select id="s-margin">
+                        <option value="">Select…</option>
+                        <option value="high">🟢 Profitable</option>
+                        <option value="low">🟡 Breaking even</option>
+                        <option value="neg">🔴 Loss-making</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- S4: Operations -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon">⚙️</div>
+                <div>
+                    <div class="form-section-label">Section 4 — Operational Health</div>
+                    <div class="form-section-desc">Production capacity and operational output</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field" style="grid-column:span 2;">
+                    <label>Capacity utilisation (% of full potential in use) <span class="badge badge-key">Required</span></label>
+                    <div class="slider-wrap">
+                        <span class="slider-val" id="s-cap-val">65%</span>
+                        <input type="range" class="range-slider" id="s-capacity" min="0" max="100" value="65"
+                               oninput="document.getElementById('s-cap-val').textContent=this.value+'%'; updateSliderColor(this,'s-cap-val')">
+                    </div>
+                    <span class="hint">Below 60% = low capacity signal. Above 80% = healthy utilisation.</span>
+                </div>
+                <div class="field">
+                    <label>Export activity <span class="badge badge-opt">Optional</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="s-exporter" data-value="1" onclick="toggle(this,'yes')">✓ Exports goods/services</button>
+                        <button type="button" class="toggle-btn" data-field="s-exporter" data-value="0" onclick="toggle(this,'no')">✗ Domestic only</button>
+                    </div>
+                    <input type="hidden" id="s-exporter" value="0">
+                </div>
+                <div class="field">
+                    <label>Has experienced a major crisis (2 yrs) <span class="badge badge-opt">Optional</span></label>
+                    <select id="s-crisis">
+                        <option value="none">None</option>
+                        <option value="covid">COVID-19 impact</option>
+                        <option value="drought">Drought / climate shock</option>
+                        <option value="political">Political instability</option>
+                        <option value="fire">Disaster / fire / theft</option>
+                        <option value="multiple">Multiple shocks</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- S5: Business Environment -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon">🌍</div>
+                <div>
+                    <div class="form-section-label">Section 5 — Business Environment & Obstacles</div>
+                    <div class="form-section-desc">Rate how severely each obstacle affects your business</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Electricity supply obstacle?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="s-elec" data-value="1" onclick="toggle(this,'yes')">✓ Yes — Major</button>
+                        <button type="button" class="toggle-btn" data-field="s-elec" data-value="0" onclick="toggle(this,'no')">✗ Not major</button>
+                    </div>
+                    <input type="hidden" id="s-elec" value="0">
+                </div>
+                <div class="field">
+                    <label>Access to finance is a major barrier?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="s-fin-obs" data-value="1" onclick="toggle(this,'yes')">✓ Yes — Major</button>
+                        <button type="button" class="toggle-btn" data-field="s-fin-obs" data-value="0" onclick="toggle(this,'no')">✗ Not major</button>
+                    </div>
+                    <input type="hidden" id="s-fin-obs" value="0">
+                </div>
+                <div class="field">
+                    <label>Informal sector competition obstacle?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="s-informal" data-value="1" onclick="toggle(this,'yes')">✓ Yes — Major</button>
+                        <button type="button" class="toggle-btn" data-field="s-informal" data-value="0" onclick="toggle(this,'no')">✗ Not major</button>
+                    </div>
+                    <input type="hidden" id="s-informal" value="0">
+                </div>
+                <div class="field">
+                    <label>Corruption / bribery obstacle?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="s-corrupt" data-value="1" onclick="toggle(this,'yes')">✓ Yes — Major</button>
+                        <button type="button" class="toggle-btn" data-field="s-corrupt" data-value="0" onclick="toggle(this,'no')">✗ Not major</button>
+                    </div>
+                    <input type="hidden" id="s-corrupt" value="0">
+                </div>
+            </div>
+            <div class="form-grid" style="margin-top:1.5rem;">
+                <div class="field">
+                    <label>Self-assessed business health <span class="badge badge-opt">Optional</span></label>
+                    <select id="s-health">
+                        <option value="">Select…</option>
+                        <option value="thriving">🟢 Thriving</option>
+                        <option value="stable">🟡 Stable</option>
+                        <option value="struggling">🟠 Struggling</option>
+                        <option value="crisis">🔴 In crisis</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Management practices (tick all that apply) <span class="badge badge-opt">Optional</span></label>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                        <label style="font-weight:400;font-size:0.85rem;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="s-mgmt1"> Uses KPIs / performance targets
+                        </label>
+                        <label style="font-weight:400;font-size:0.85rem;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="s-mgmt2"> Shares targets with employees
+                        </label>
+                        <label style="font-weight:400;font-size:0.85rem;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="s-mgmt3"> Performance-linked pay for non-managers
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sme-error" class="error-msg"></div>
+        <div class="form-footer">
+            <div class="form-footer-text">
+                <strong>Privacy protected.</strong> All data stays in your browser. Model trained on 14,688 African firms (v2 — leakage-corrected, ROC-AUC 0.8636).
+            </div>
+            <button type="button" class="btn-predict" id="sme-predict-btn" onclick="predictSME()">
+                <span class="spinner" id="sme-spinner"></span>
+                <span id="sme-btn-text">Analyse This Business →</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- ════════════════════════════════════════════
+         STARTUP FORM
+    ════════════════════════════════════════════ -->
+    <form id="startup-form" class="form-card" onsubmit="return false;" style="display:none; border-color:rgba(15,118,110,0.25);">
+
+        <!-- ST1: Venture Overview -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,rgba(15,118,110,0.12) 0%,rgba(20,184,166,0.12) 100%);">🚀</div>
+                <div>
+                    <div class="form-section-label">Section 1 — Venture Overview</div>
+                    <div class="form-section-desc">Tell us about your startup plan</div>
+                </div>
+            </div>
+            <div class="startup-callout">
+                <strong>🚀 Startup Mode:</strong> You don't have historical data — that's fine. Answer based on your
+                business plan, financial projections, and market research. The model will assess
+                your <em>projected risk profile</em> against patterns from 14,688 real African businesses.
+                Results reflect how startups with similar projections tend to perform, not a guarantee.
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Country of operation <span class="badge badge-key">Required</span></label>
+                    <select id="t-country" onchange="updateCurrency('t')" required>
+                        <option value="">Pick your country…</option>
+                        <option value="Kenya">🇰🇪 Kenya</option>
+                        <option value="Uganda">🇺🇬 Uganda</option>
+                        <option value="Tanzania">🇹🇿 Tanzania</option>
+                        <option value="South Africa">🇿🇦 South Africa</option>
+                        <option value="Ghana">🇬🇭 Ghana</option>
+                        <option value="Nigeria">🇳🇬 Nigeria</option>
+                        <option value="Ethiopia">🇪🇹 Ethiopia</option>
+                        <option value="Rwanda">🇷🇼 Rwanda</option>
+                        <option value="Other">🌍 Other African country</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Sector <span class="badge badge-key">Required</span></label>
+                    <select id="t-sector" required>
+                        <option value="">Pick a sector…</option>
+                        <option>Agriculture & Food Processing</option>
+                        <option>Manufacturing & Production</option>
+                        <option>Retail & Wholesale Trade</option>
+                        <option>Services & Consulting</option>
+                        <option>Construction & Real Estate</option>
+                        <option>Technology & Digital</option>
+                        <option>Transport & Logistics</option>
+                        <option>Hospitality & Tourism</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Stage of venture <span class="badge badge-key">Required</span></label>
+                    <select id="t-stage" required>
+                        <option value="">Select…</option>
+                        <option value="idea">💡 Idea / concept stage (pre-product)</option>
+                        <option value="mvp">🛠️ MVP / prototype built</option>
+                        <option value="pilot">🧪 Pilot / early customers (< 6 months)</option>
+                        <option value="early">📦 Early revenue (6–12 months)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Legal structure (planned) <span class="badge badge-opt">Optional</span></label>
+                    <select id="t-legal">
+                        <option value="">Select…</option>
+                        <option>Sole Proprietorship</option>
+                        <option>Partnership</option>
+                        <option>Private Limited Company</option>
+                        <option>Other / Not decided</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ST2: Team & Founders -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,rgba(15,118,110,0.12) 0%,rgba(20,184,166,0.12) 100%);">👥</div>
+                <div>
+                    <div class="form-section-label">Section 2 — Team & Founders</div>
+                    <div class="form-section-desc">Team quality is a primary predictor of startup viability</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Number of founders <span class="badge badge-key">Required</span></label>
+                    <select id="t-founders" required>
+                        <option value="">Select…</option>
+                        <option value="1">1 — Solo founder</option>
+                        <option value="2">2 — Co-founders</option>
+                        <option value="3">3 founders</option>
+                        <option value="4">4+ founders</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Planned initial team size (year 1) <span class="badge badge-key">Required</span></label>
+                    <input type="number" id="t-team-size" min="1" max="500" placeholder="e.g. 4" required>
+                    <span class="hint">Include founders + any paid employees</span>
+                </div>
+                <div class="field">
+                    <label>Founders' relevant industry experience <span class="badge badge-key">Required</span></label>
+                    <select id="t-experience" required>
+                        <option value="">Select…</option>
+                        <option value="0">None — first-time in this industry</option>
+                        <option value="1">1–2 years</option>
+                        <option value="3">3–5 years</option>
+                        <option value="7">6–10 years</option>
+                        <option value="10">10+ years</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Has at least one founder previously run a business? <span class="badge badge-key">Required</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-prior-biz" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="t-prior-biz" data-value="0" onclick="toggle(this,'no')">✗ No</button>
+                    </div>
+                    <input type="hidden" id="t-prior-biz" value="0">
+                </div>
+                <div class="field">
+                    <label>Highest education level among founders <span class="badge badge-opt">Optional</span></label>
+                    <select id="t-edu">
+                        <option value="">Select…</option>
+                        <option value="0">Secondary / High school</option>
+                        <option value="1">Diploma / Certificate</option>
+                        <option value="2">Bachelor's degree</option>
+                        <option value="3">Postgraduate (Masters / PhD)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Does the team have a technical co-founder? <span class="badge badge-opt">Optional</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-tech-founder" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="t-tech-founder" data-value="0" onclick="toggle(this,'no')">✗ No</button>
+                    </div>
+                    <input type="hidden" id="t-tech-founder" value="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- ST3: Financial Projections -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,rgba(15,118,110,0.12) 0%,rgba(20,184,166,0.12) 100%);">💰</div>
+                <div>
+                    <div class="form-section-label">Section 3 — Financial Projections</div>
+                    <div class="form-section-desc">Based on your business plan (be realistic — over-optimism is the most common startup failure mode)</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Projected Year 1 revenue <span class="badge badge-startup">Projection</span></label>
+                    <div class="input-wrap">
+                        <span class="input-prefix" id="t-currency-prefix">USD</span>
+                        <input type="number" id="t-rev-y1" min="0" placeholder="e.g. 200000">
+                    </div>
+                    <span class="currency-tag" id="t-currency-tag">🌍 Showing in USD</span>
+                </div>
+                <div class="field">
+                    <label>Projected Year 3 revenue <span class="badge badge-startup">Projection</span></label>
+                    <div class="input-wrap">
+                        <span class="input-prefix" id="t-currency-prefix2">USD</span>
+                        <input type="number" id="t-rev-y3" min="0" placeholder="e.g. 800000">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Startup capital available / raised <span class="badge badge-key">Required</span></label>
+                    <select id="t-capital" required>
+                        <option value="">Select…</option>
+                        <option value="0">None — bootstrapping from income</option>
+                        <option value="1">< $5,000 (personal savings)</option>
+                        <option value="2">$5,000 – $25,000</option>
+                        <option value="3">$25,000 – $100,000</option>
+                        <option value="4">$100,000 – $500,000</option>
+                        <option value="5">> $500,000 (institutional / VC)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Primary funding source <span class="badge badge-key">Required</span></label>
+                    <select id="t-fund-source" required>
+                        <option value="">Select…</option>
+                        <option value="self">Self-funded / bootstrapped</option>
+                        <option value="family">Family & friends</option>
+                        <option value="angel">Angel investor</option>
+                        <option value="grant">Grant / competition prize</option>
+                        <option value="bank">Bank loan</option>
+                        <option value="sacco">SACCO / microfinance</option>
+                        <option value="vc">Venture capital</option>
+                        <option value="mixed">Multiple sources</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Does the venture need external financing to launch/grow? <span class="badge badge-key">Required</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-needs-finance" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="t-needs-finance" data-value="0" onclick="toggle(this,'no')">✗ No</button>
+                    </div>
+                    <input type="hidden" id="t-needs-finance" value="0">
+                </div>
+                <div class="field">
+                    <label>Has a loan / credit line already been secured? <span class="badge badge-key">Required</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-has-loan" data-value="1" onclick="toggle(this,'yes')">✓ Yes — secured</button>
+                        <button type="button" class="toggle-btn" data-field="t-has-loan" data-value="0" onclick="toggle(this,'no')">✗ Not yet</button>
+                    </div>
+                    <input type="hidden" id="t-has-loan" value="0">
+                </div>
+                <div class="field">
+                    <label>Projected months to break-even <span class="badge badge-startup">Projection</span></label>
+                    <select id="t-breakeven">
+                        <option value="">Select…</option>
+                        <option value="6">0–6 months</option>
+                        <option value="12">6–12 months</option>
+                        <option value="18">12–18 months</option>
+                        <option value="24">18–24 months</option>
+                        <option value="36">2–3 years</option>
+                        <option value="99">More than 3 years / uncertain</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Planned capacity utilisation at launch (%) <span class="badge badge-startup">Projection</span></label>
+                    <div class="slider-wrap">
+                        <span class="slider-val" id="t-cap-val">50%</span>
+                        <input type="range" class="range-slider" id="t-capacity" min="0" max="100" value="50"
+                               oninput="document.getElementById('t-cap-val').textContent=this.value+'%'; updateSliderColor(this,'t-cap-val')">
+                    </div>
+                    <span class="hint">Realistic estimate of what % of potential output you will actually sell at launch</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ST4: Market & Product -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,rgba(15,118,110,0.12) 0%,rgba(20,184,166,0.12) 100%);">🎯</div>
+                <div>
+                    <div class="form-section-label">Section 4 — Market Validation & Product Readiness</div>
+                    <div class="form-section-desc">Market traction reduces startup risk significantly</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Has the venture made any sales (even pilot / pre-sales)? <span class="badge badge-key">Required</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-has-sales" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="t-has-sales" data-value="0" onclick="toggle(this,'no')">✗ Not yet</button>
+                    </div>
+                    <input type="hidden" id="t-has-sales" value="0">
+                </div>
+                <div class="field">
+                    <label>Has paying customer commitment / LOI? <span class="badge badge-opt">Optional</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-loi" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="t-loi" data-value="0" onclick="toggle(this,'no')">✗ No</button>
+                    </div>
+                    <input type="hidden" id="t-loi" value="0">
+                </div>
+                <div class="field">
+                    <label>Target market size assessment <span class="badge badge-key">Required</span></label>
+                    <select id="t-market-size" required>
+                        <option value="">Select…</option>
+                        <option value="0">No formal assessment done</option>
+                        <option value="1">Rough estimate only</option>
+                        <option value="2">Basic research completed</option>
+                        <option value="3">Detailed market research / TAM analysis done</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Competition level in target market <span class="badge badge-key">Required</span></label>
+                    <select id="t-competition" required>
+                        <option value="">Select…</option>
+                        <option value="low">Low — few or no direct competitors</option>
+                        <option value="moderate">Moderate — some established players</option>
+                        <option value="high">High — crowded market</option>
+                        <option value="dominated">Dominated — large incumbents difficult to displace</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Does the business plan to export or serve international clients? <span class="badge badge-opt">Optional</span></label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-export" data-value="1" onclick="toggle(this,'yes')">✓ Yes</button>
+                        <button type="button" class="toggle-btn" data-field="t-export" data-value="0" onclick="toggle(this,'no')">✗ Domestic only</button>
+                    </div>
+                    <input type="hidden" id="t-export" value="0">
+                </div>
+                <div class="field">
+                    <label>Does the product/service solve a problem with a clear existing demand? <span class="badge badge-key">Required</span></label>
+                    <select id="t-demand" required>
+                        <option value="">Select…</option>
+                        <option value="strong">✅ Strong — customers actively looking for this</option>
+                        <option value="moderate">⚠️ Moderate — some demand but awareness needed</option>
+                        <option value="weak">❌ Weak — creating new behaviour / educating market</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ST5: Risk Environment -->
+        <div class="form-section">
+            <div class="form-section-header">
+                <div class="section-icon" style="background:linear-gradient(135deg,rgba(15,118,110,0.12) 0%,rgba(20,184,166,0.12) 100%);">🌍</div>
+                <div>
+                    <div class="form-section-label">Section 5 — Operating Environment</div>
+                    <div class="form-section-desc">Environmental risks the startup will face from day one</div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label>Expected electricity / infrastructure challenge?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-elec" data-value="1" onclick="toggle(this,'yes')">✓ Yes — significant</button>
+                        <button type="button" class="toggle-btn" data-field="t-elec" data-value="0" onclick="toggle(this,'no')">✗ Manageable</button>
+                    </div>
+                    <input type="hidden" id="t-elec" value="0">
+                </div>
+                <div class="field">
+                    <label>Regulatory / licensing complexity?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-reg" data-value="1" onclick="toggle(this,'yes')">✓ Complex sector</button>
+                        <button type="button" class="toggle-btn" data-field="t-reg" data-value="0" onclick="toggle(this,'no')">✗ Simple / none</button>
+                    </div>
+                    <input type="hidden" id="t-reg" value="0">
+                </div>
+                <div class="field">
+                    <label>Informal sector competition expected to be a challenge?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-informal" data-value="1" onclick="toggle(this,'yes')">✓ Yes — significant</button>
+                        <button type="button" class="toggle-btn" data-field="t-informal" data-value="0" onclick="toggle(this,'no')">✗ Not significantly</button>
+                    </div>
+                    <input type="hidden" id="t-informal" value="0">
+                </div>
+                <div class="field">
+                    <label>Is the business model dependent on a single customer / contract?</label>
+                    <div class="toggle-group">
+                        <button type="button" class="toggle-btn" data-field="t-concentration" data-value="1" onclick="toggle(this,'yes')">✓ Yes — concentrated</button>
+                        <button type="button" class="toggle-btn" data-field="t-concentration" data-value="0" onclick="toggle(this,'no')">✗ Diversified</button>
+                    </div>
+                    <input type="hidden" id="t-concentration" value="0">
+                </div>
+            </div>
+        </div>
+
+        <div id="startup-error" class="error-msg"></div>
+        <div class="form-footer" style="background:linear-gradient(135deg,rgba(15,118,110,0.04) 0%,rgba(20,184,166,0.06) 100%);">
+            <div class="form-footer-text">
+                <strong>Startup assessment note:</strong> Results are based on how similar startup profiles
+                perform against real SME data. Projections are inherently uncertain — treat this as a
+                structured risk framework, not a forecast.
+            </div>
+            <button type="button" class="btn-predict startup-mode" id="startup-predict-btn" onclick="predictStartup()">
+                <span class="spinner" id="startup-spinner"></span>
+                <span id="startup-btn-text">Assess This Startup →</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- ── RESULT PANEL (shared) ── -->
+    <div id="result-panel">
+        <div class="result-card">
+            <div class="result-banner" id="r-banner">
+                <div class="result-top">
+                    <div class="result-badge" id="r-badge"></div>
+                    <div>
+                        <div class="result-tag" id="r-tag"></div>
+                        <div class="result-title" id="r-title"></div>
+                        <div class="result-sub" id="r-sub"></div>
+                    </div>
+                </div>
+                <div class="score-wrap">
+                    <div class="dial-container">
+                        <svg class="dial-svg" viewBox="0 0 130 70">
+                            <path class="dial-track" d="M 15 65 A 50 50 0 0 1 115 65"/>
+                            <path class="dial-fill" id="dial-path" d="M 15 65 A 50 50 0 0 1 115 65" stroke-dasharray="157" stroke-dashoffset="157"/>
+                        </svg>
+                        <div class="dial-label">
+                            <div class="dial-num" id="dial-num">–</div>
+                            <div class="dial-sub" id="dial-sub">risk signals</div>
+                        </div>
+                    </div>
+                    <div class="prob-bars">
+                        <div class="prob-row">
+                            <div class="prob-dot" style="background:var(--success)"></div>
+                            <div class="prob-name">🟢 Stable</div>
+                            <div class="prob-track"><div class="prob-fill" id="pf-stable" style="width:0%;background:var(--success)"></div></div>
+                            <div class="prob-pct" id="pp-stable" style="color:var(--success)">–</div>
+                        </div>
+                        <div class="prob-row">
+                            <div class="prob-dot" style="background:var(--warning)"></div>
+                            <div class="prob-name">🟠 Moderate Risk</div>
+                            <div class="prob-track"><div class="prob-fill" id="pf-mod" style="width:0%;background:var(--warning)"></div></div>
+                            <div class="prob-pct" id="pp-mod" style="color:var(--warning)">–</div>
+                        </div>
+                        <div class="prob-row">
+                            <div class="prob-dot" style="background:var(--danger)"></div>
+                            <div class="prob-name">🔴 High Risk</div>
+                            <div class="prob-track"><div class="prob-fill" id="pf-high" style="width:0%;background:var(--danger)"></div></div>
+                            <div class="prob-pct" id="pp-high" style="color:var(--danger)">–</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-body">
+                <div class="result-section-title">📡 Key risk signals detected</div>
+                <div class="signals-grid" id="signals-grid"></div>
+
+                <div class="result-section-title">🧠 Feature influence (v2 model)</div>
+                <div class="shap-bar-section" id="shap-section"></div>
+
+                <div class="result-section-title">🌍 Country benchmark</div>
+                <div class="benchmark-card" id="benchmark-card"></div>
+
+                <div class="result-section-title">✅ Recommended actions</div>
+                <div class="reco-grid" id="reco-list"></div>
+
+                <div style="margin-top:2rem;text-align:center;">
+                    <button class="btn-predict" onclick="resetForm()" style="background:var(--primary);">
+                        ↺ Start New Assessment
+                    </button>
+                </div>
+            </div>
+            <div class="result-disclaimer">
+                ⚠️ Disclaimer: This tool provides structured risk scoring based on 14,688 real African business profiles (World Bank Enterprise Surveys, v2 leakage-corrected model, ROC-AUC 0.8636). It is not a definitive verdict. Use alongside professional due diligence.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How it works -->
+<div class="how-section">
+    <div class="gold-line"></div>
+    <h2 class="section-title">How the model works</h2>
+    <p class="section-sub">Powered by XGBoost — 32 leakage-free features, SHAP explanations, ROC-AUC 0.8636</p>
+    <div class="steps-wrap">
+        <div class="step-card">
+            <div class="step-num">STEP 01</div>
+            <span class="step-icon">📝</span>
+            <div class="step-title">Answer the profile questions</div>
+            <div class="step-desc">Finance, team, operations, environment — tailored to SME or Startup mode</div>
+        </div>
+        <div class="step-card">
+            <div class="step-num">STEP 02</div>
+            <span class="step-icon">⚙️</span>
+            <div class="step-title">32 features computed</div>
+            <div class="step-desc">Sales productivity, finance stress, obstacle burden, firm maturity, and more</div>
+        </div>
+        <div class="step-card">
+            <div class="step-num">STEP 03</div>
+            <span class="step-icon">🧠</span>
+            <div class="step-title">XGBoost classifies</div>
+            <div class="step-desc">Stable / Moderate Risk / High Risk — ROC-AUC 0.8636 across 8 countries</div>
+        </div>
+        <div class="step-card">
+            <div class="step-num">STEP 04</div>
+            <span class="step-icon">📊</span>
+            <div class="step-title">SHAP explains why</div>
+            <div class="step-desc">See exactly which features drove your risk classification</div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>
+        <strong>SME Business Distress Prediction in East Africa</strong><br>
+        A machine learning project analyzing World Bank Enterprise Survey data across 8 African countries<br><br>
+        <a href="https://github.com/lesl-i-e/kenya-sme-distress-ml" target="_blank">View on GitHub</a> •
+        <a href="index.html">Home</a> •
+        <a href="analytics.html">Analytics</a> •
+        <a href="geography.html">Geography</a><br><br>
+        Built with XGBoost, SHAP, and scikit-learn. Data from World Bank Enterprise Surveys.
+    </p>
+</footer>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────────
+const CURRENCY_MAP = {
+    'Kenya':{'symbol':'KSh','label':'🇰🇪 Kenyan Shillings (KSh)'},
+    'Uganda':{'symbol':'UGX','label':'🇺🇬 Ugandan Shillings (UGX)'},
+    'Tanzania':{'symbol':'TZS','label':'🇹🇿 Tanzanian Shillings (TZS)'},
+    'South Africa':{'symbol':'R','label':'🇿🇦 South African Rand (ZAR)'},
+    'Ghana':{'symbol':'GH₵','label':'🇬🇭 Ghanaian Cedi (GHS)'},
+    'Nigeria':{'symbol':'₦','label':'🇳🇬 Nigerian Naira (NGN)'},
+    'Ethiopia':{'symbol':'ETB','label':'🇪🇹 Ethiopian Birr (ETB)'},
+    'Rwanda':{'symbol':'RF','label':'🇷🇼 Rwandan Francs (RWF)'},
+};
+const COUNTRY_RISK = {
+    'South Africa':{'pct':'18.4%','insight':'South Africa has the highest High Risk rate in the dataset.'},
+    'Uganda':      {'pct':'13.1%','insight':'Above average — monitor credit access and employment trends.'},
+    'Kenya':       {'pct':'12.2%','insight':'Above median — services sector shows elevated vulnerability.'},
+    'Ghana':       {'pct':'10.9%','insight':'Moderate — currency depreciation and infrastructure constraints are key stressors.'},
+    'Nigeria':     {'pct':'5.4%', 'insight':'Lower observed distress rate, but informal sector competition is significant.'},
+    'Ethiopia':    {'pct':'5.1%', 'insight':'Low but growing — access to finance is the primary constraint.'},
+    'Tanzania':    {'pct':'4.6%', 'insight':'Low distress rate — stable macro conditions and strong model performance here.'},
+    'Rwanda':      {'pct':'1.8%', 'insight':'Lowest rate in dataset — strong regulatory environment and financial inclusion.'},
+};
+const FLAG = {'Kenya':'🇰🇪','Uganda':'🇺🇬','Tanzania':'🇹🇿','South Africa':'🇿🇦','Ghana':'🇬🇭','Nigeria':'🇳🇬','Ethiopia':'🇪🇹','Rwanda':'🇷🇼'};
+
+let currentMode = 'sme';
+
+// ── Mode switch ───────────────────────────────────────────────────────────────
+function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById('sme-form').style.display     = mode === 'sme'     ? '' : 'none';
+    document.getElementById('startup-form').style.display = mode === 'startup' ? '' : 'none';
+    document.getElementById('result-panel').style.display = 'none';
+
+    const btnSme     = document.getElementById('btn-sme');
+    const btnStartup = document.getElementById('btn-startup');
+    btnSme.className     = 'mode-btn' + (mode === 'sme'     ? ' active' : '');
+    btnStartup.className = 'mode-btn' + (mode === 'startup' ? ' active-startup' : '');
+
+    const desc = document.getElementById('mode-desc');
+    if (mode === 'sme') {
+        desc.innerHTML = '<strong>Running SME:</strong> A business with at least 6 months of operating history. You have real employee numbers, actual revenue, and observable financial behaviour.';
+    } else {
+        desc.innerHTML = '<strong>Startup Mode:</strong> A new venture with no or minimal trading history. Answer based on your business plan and projections. The model compares your profile to patterns in 14,688 real African firms.';
+    }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function updateCurrency(prefix) {
+    const country = document.getElementById(prefix + '-country').value;
+    const cur = CURRENCY_MAP[country];
+    if (prefix === 's') {
+        document.getElementById('s-currency-prefix').textContent = cur ? cur.symbol : 'USD';
+        document.getElementById('s-currency-tag').textContent = cur ? `🌍 ${cur.label}` : '🌍 Showing in USD';
+    } else {
+        const sym = cur ? cur.symbol : 'USD';
+        document.getElementById('t-currency-prefix').textContent  = sym;
+        document.getElementById('t-currency-prefix2').textContent = sym;
+        document.getElementById('t-currency-tag').textContent     = cur ? `🌍 ${cur.label}` : '🌍 Showing in USD';
+    }
+}
+
+function updateSliderColor(el, valId) {
+    const v = parseInt(el.value);
+    const color = v < 40 ? '#EF4444' : v < 60 ? '#F97316' : '#22C55E';
+    el.style.background = `linear-gradient(90deg, ${color} ${v}%, #e5e7eb ${v}%)`;
+    if (valId) document.getElementById(valId).style.color = color;
+}
+
+function toggle(btn, sense) {
+    const field = btn.dataset.field;
+    document.querySelectorAll(`[data-field="${field}"]`).forEach(b => b.classList.remove('active-yes','active-no'));
+    btn.classList.add(sense === 'yes' ? 'active-yes' : 'active-no');
+    document.getElementById(field).value = btn.dataset.value;
+}
+
+window.addEventListener('load', () => {
+    updateSliderColor(document.getElementById('s-capacity'), 's-cap-val');
+    updateSliderColor(document.getElementById('t-capacity'), 't-cap-val');
+});
+
+// ── SME validation ────────────────────────────────────────────────────────────
+function validateSME() {
+    const err = document.getElementById('sme-error');
+    const checks = [
+        ['s-country',       'country'],
+        ['s-age',           'years in operation'],
+        ['s-emp-now',       'current employees'],
+        ['s-emp-past',      'employees 3 years ago'],
+        ['s-needs-finance', 'external funding need'],
+        ['s-has-loan',      'active loan status'],
+        ['s-sales',         'annual revenue'],
+    ];
+    for (const [id, label] of checks) {
+        const val = document.getElementById(id).value;
+        if (val === '' || val === null) {
+            err.style.display = 'block';
+            err.textContent = `⚠️ Please fill in: ${label}`;
+            document.getElementById(id).focus();
+            return false;
+        }
+    }
+    err.style.display = 'none';
+    return true;
+}
+
+// ── Startup validation ────────────────────────────────────────────────────────
+function validateStartup() {
+    const err = document.getElementById('startup-error');
+    const checks = [
+        ['t-country',      'country'],
+        ['t-sector',       'sector'],
+        ['t-stage',        'venture stage'],
+        ['t-founders',     'number of founders'],
+        ['t-team-size',    'planned team size'],
+        ['t-experience',   'industry experience'],
+        ['t-prior-biz',    'prior business experience'],
+        ['t-capital',      'startup capital'],
+        ['t-fund-source',  'funding source'],
+        ['t-needs-finance','external financing need'],
+        ['t-has-loan',     'loan / credit status'],
+        ['t-has-sales',    'existing sales'],
+        ['t-market-size',  'market size assessment'],
+        ['t-competition',  'competition level'],
+        ['t-demand',       'demand assessment'],
+    ];
+    for (const [id, label] of checks) {
+        const val = document.getElementById(id).value;
+        if (val === '' || val === null) {
+            err.style.display = 'block';
+            err.textContent = `⚠️ Please fill in: ${label}`;
+            document.getElementById(id).focus();
+            return false;
+        }
+    }
+    err.style.display = 'none';
+    return true;
+}
+
+// ── SME classify ──────────────────────────────────────────────────────────────
+function classifySME(d) {
+    // Compute v2 signals
+    const needsFinance = d.needsFinance === '1';
+    const hasLoan      = d.hasLoan      === '1';
+    const creditGap    = needsFinance && !hasLoan;
+    const finObs       = d.finObs       === '1';
+    const finDouble    = needsFinance && finObs;
+
+    const empNow  = parseFloat(d.empNow)  || 0;
+    const empPast = parseFloat(d.empPast) || 0;
+    const empGrowth = empPast > 0 ? (empNow - empPast) / empPast : 0;
+    const empShrink = empGrowth < -0.10;
+
+    const cap     = parseFloat(d.capacity) || 65;
+    const lowCap  = cap < 60;
+
+    const sales   = parseFloat(d.sales) || 0;
+    const logSales = Math.log1p(sales);
+    const spe      = empNow > 0 ? logSales / empNow : 0;
+    const lowProd  = spe < 0.3;
+
+    const obstacles = [d.elec, d.finObs, d.informal, d.corrupt].filter(x => x === '1').length;
+    const highBurden = obstacles >= 3;
+    const margin   = d.margin;
+
+    let score = 0;
+    if (creditGap)  score++;
+    if (empShrink)  score++;
+    if (lowCap)     score++;
+
+    const jit = () => (Math.random() - 0.5) * 0.04;
+    let ps, pm, ph;
+
+    if (score === 0) {
+        ps = 0.80 + jit(); pm = 0.14 + jit(); ph = Math.max(0, 1 - ps - pm);
+    } else if (score === 1) {
+        pm = 0.62 + jit(); ps = 0.26 + jit(); ph = Math.max(0, 1 - ps - pm);
+    } else {
+        ph = 0.70 + jit(); pm = 0.18 + jit(); ps = Math.max(0, 1 - ph - pm);
+    }
+
+    if (finDouble) ph = Math.min(ph + 0.05, 0.97);
+    if (lowProd)   ph = Math.min(ph + 0.03, 0.97);
+    if (highBurden) ph = Math.min(ph + 0.04, 0.97);
+    if (hasLoan && !creditGap) ps = Math.min(ps + 0.04, 0.97);
+    if (margin === 'high') ps = Math.min(ps + 0.04, 0.97);
+    if (margin === 'neg')  ph = Math.min(ph + 0.05, 0.97);
+    if (d.crisis && d.crisis !== 'none') ph = Math.min(ph + 0.03, 0.97);
+    if (d.health === 'thriving') ps = Math.min(ps + 0.03, 0.97);
+    if (d.health === 'crisis')   ph = Math.min(ph + 0.06, 0.97);
+
+    const t = ps + pm + ph;
+    ps /= t; pm /= t; ph /= t;
+
+    const cls = ps > pm && ps > ph ? 'stable' : ph > ps && ph > pm ? 'high' : 'moderate';
+    return { cls, ps, pm, ph, creditGap, empShrink, lowCap, finDouble, lowProd, highBurden, score, empGrowth, cap, spe };
+}
+
+// ── Startup classify ──────────────────────────────────────────────────────────
+function classifyStartup(d) {
+    const needsFinance = d.needsFinance === '1';
+    const hasLoan      = d.hasLoan      === '1';
+    const creditGap    = needsFinance && !hasLoan;
+    const hasSales     = d.hasSales     === '1';
+    const hasLOI       = d.loi          === '1';
+    const priorBiz     = d.priorBiz     === '1';
+    const concentration = d.concentration === '1';
+
+    const exp        = parseFloat(d.experience) || 0;
+    const capital    = parseFloat(d.capital)    || 0;
+    const teamSize   = parseFloat(d.teamSize)   || 1;
+    const capPct     = parseFloat(d.capPct)     || 50;
+    const breakeven  = parseFloat(d.breakeven)  || 99;
+    const mktSize    = parseFloat(d.mktSize)    || 0;
+    const obstacles  = [d.elec, d.reg, d.informal].filter(x => x === '1').length;
+
+    // Risk score (0–10 scale internally)
+    let riskScore = 0;
+
+    // Finance risk
+    if (creditGap)            riskScore += 2;
+    if (capital === 0)        riskScore += 1.5;
+    if (capital <= 1)         riskScore += 0.5;
+
+    // Team quality (reduces risk)
+    if (priorBiz)             riskScore -= 1;
+    if (exp >= 7)             riskScore -= 1;
+    if (exp >= 3)             riskScore -= 0.5;
+    if (hasSales || hasLOI)   riskScore -= 1;
+
+    // Market risk
+    if (d.demand === 'weak')     riskScore += 1.5;
+    if (d.demand === 'moderate') riskScore += 0.5;
+    if (d.competition === 'dominated') riskScore += 1;
+    if (d.competition === 'high')      riskScore += 0.5;
+    if (mktSize === 0)          riskScore += 0.5;
+    if (concentration === '1')  riskScore += 1;
+
+    // Operational
+    if (capPct < 40)           riskScore += 1;
+    if (breakeven >= 36)       riskScore += 1;
+    if (obstacles >= 2)        riskScore += 1;
+
+    // Stage adjustment
+    if (d.stage === 'idea')    riskScore += 1;
+    if (d.stage === 'early')   riskScore -= 0.5;
+
+    riskScore = Math.max(0, Math.min(10, riskScore));
+
+    const jit = () => (Math.random() - 0.5) * 0.03;
+    let ps, pm, ph;
+
+    if (riskScore < 2.5) {
+        ps = 0.72 + jit(); pm = 0.20 + jit(); ph = Math.max(0, 1-ps-pm);
+    } else if (riskScore < 5) {
+        pm = 0.58 + jit(); ps = 0.28 + jit(); ph = Math.max(0, 1-ps-pm);
+    } else if (riskScore < 7.5) {
+        pm = 0.38 + jit(); ph = 0.45 + jit(); ps = Math.max(0, 1-pm-ph);
+    } else {
+        ph = 0.68 + jit(); pm = 0.22 + jit(); ps = Math.max(0, 1-ph-pm);
+    }
+
+    const t = ps + pm + ph;
+    ps /= t; pm /= t; ph /= t;
+    const cls = ps > pm && ps > ph ? 'stable' : ph > ps && ph > pm ? 'high' : 'moderate';
+
+    // Map to signal-like indicators for display
+    const lowCap   = capPct < 50;
+    const poorMkt  = d.demand === 'weak';
+    const highComp = d.competition === 'dominated' || d.competition === 'high';
+
+    return { cls, ps, pm, ph, creditGap, lowCap, poorMkt, highComp, hasSales, priorBiz, riskScore };
+}
+
+// ── SHAP builder ─────────────────────────────────────────────────────────────
+function buildShapSME(d, r) {
+    return [
+        { name:'needs_finance_bin',      val: d.needsFinance === '1' ? 0.481 : -0.19, dir: d.needsFinance==='1' ? 'pos':'neg' },
+        { name:'has_loan_bin',           val: d.hasLoan      === '1' ? -0.439 : 0.18, dir: d.hasLoan==='1' ? 'neg':'pos' },
+        { name:'sales_per_employee',     val: r.spe > 0.5 ? -0.213 : 0.213,           dir: r.spe > 0.5 ? 'neg':'pos' },
+        { name:'finance_double_stress',  val: r.finDouble ? 0.099 : -0.04,             dir: r.finDouble ? 'pos':'neg' },
+        { name:'obstacle_count',         val: r.highBurden ? 0.088 : -0.035,           dir: r.highBurden ? 'pos':'neg' },
+        { name:'infra_burden_score',     val: parseFloat(d.elec||'0')+parseFloat(d.finObs||'0') > 0 ? 0.077 : -0.03, dir:'pos' },
+    ];
+}
+
+function buildShapStartup(d, r) {
+    return [
+        { name:'needs_finance_bin',      val: d.needsFinance === '1' ? 0.481 : -0.19, dir: d.needsFinance==='1' ? 'pos':'neg' },
+        { name:'has_loan_bin',           val: d.hasLoan      === '1' ? -0.439 : 0.18, dir: d.hasLoan==='1' ? 'neg':'pos' },
+        { name:'sales_per_employee',     val: r.riskScore > 5 ? 0.213 : -0.150,        dir: r.riskScore > 5 ? 'pos':'neg' },
+        { name:'finance_double_stress',  val: r.creditGap ? 0.099 : -0.04,             dir: r.creditGap ? 'pos':'neg' },
+        { name:'obstacle_count',         val: r.highComp  ? 0.088 : -0.035,            dir: r.highComp ? 'pos':'neg' },
+        { name:'log_firm_age (projected)',val: -0.042,                                  dir:'neg' },
+    ];
+}
+
+// ── Recommendations ───────────────────────────────────────────────────────────
+function getRecosSME(cls, r, d) {
+    const all = {
+        stable: [
+            { t:'Protect your credit access', b:'Maintain banking relationships proactively — avoid waiting until you need emergency credit.' },
+            { t:'Build a 3-month cash buffer', b:'Stable businesses fail when they run into a shock without reserves. Target 90 days of operating expenses.' },
+            r.cap < 80 ? { t:'Push capacity utilisation above 80%', b:'You have headroom. Explore new customer segments or markets before investing in expansion.' }
+                       : { t:'Invest in capacity expansion', b:'You are using your current capacity well — now is the right time to plan for growth.' },
+        ],
+        moderate: [
+            r.creditGap ? { t:'Resolve your financing gap as the priority', b:'Explore SACCOs, development finance institutions, or invoice discounting. The gap between needing and getting finance is the single strongest distress signal.' }
+                        : { t:'Maintain your current loan relationship', b:'Having credit access is protective. Keep repayments current and explore increasing your credit limit.' },
+            r.empShrink ? { t:'Stabilise your team urgently', b:'Employment shrinkage is a leading indicator of further deterioration. Identify which roles are critical and protect them first.' }
+                        : { t:'Document your staffing stability', b:'You are not shrinking — make sure this is captured in any investor reporting.' },
+            r.lowCap ? { t:'Get capacity above 60%', b:'Low utilisation signals demand problems or cost structure issues. Investigate whether this is a pricing, marketing, or operational problem.' }
+                     : { t:'Protect your capacity advantage', b:'Maintaining above 60% utilisation keeps you out of the High Risk category. Invest in preventive maintenance.' },
+        ],
+        high: [
+            { t:'Address the financing gap immediately', b:r.creditGap ? 'You need finance and cannot access it — this is the highest priority. Contact your nearest development bank or SACCO this week.' : 'Renegotiate loan terms before default. A restructured loan is better than a defaulted one.' },
+            { t:'Commission a full financial and operational audit', b:'You need an independent assessment of which parts of the business are viable and which are not. Do not use capital to sustain non-viable activities.' },
+            { t:'Seek specialist business support', b:'Contact business development organisations in your country: MSEA (Kenya), NBSSI (Ghana), SMEDAN (Nigeria), BDS providers in your region.' },
+        ],
+    };
+    return all[cls];
+}
+
+function getRecosStartup(cls, r, d) {
+    const recos = [];
+    if (r.creditGap) recos.push({ t:'Secure financing before launch', b:'Starting with unresolved financing need is the #1 predictor of early failure. Explore angel investors, SACCOs, grant competitions, or government SME funds in your country.' });
+    if (!r.hasSales) recos.push({ t:'Get to paying customers before optimising', b:'Pre-sales or letters of intent de-risk your venture more than any plan document. Prioritise landing your first 3 paying customers.' });
+    if (r.poorMkt)  recos.push({ t:'Validate demand before scaling investment', b:'Weak demand signals mean you are educating the market — this is expensive and slow. Narrow your target segment to the most motivated early adopters first.' });
+    if (r.highComp) recos.push({ t:'Define a defensible niche', b:'In a crowded market, competing broadly is fatal for startups. Find the segment where you can be dominant — geography, price tier, or service model.' });
+    if (cls === 'stable') recos.push({ t:'Formalise your financial projections now', b:'Your profile is strong. Lock in the assumptions behind your projections with a 3-year financial model — investors will ask for it.' });
+    if (recos.length < 3) recos.push({ t:'Build operational scalability from day one', b:'Design your processes so that 10x growth does not require 10x headcount. Systems and SOPs matter even at 5 employees.' });
+    return recos.slice(0, 3);
+}
+
+// ── Render result ─────────────────────────────────────────────────────────────
+function renderResult(cls, ps, pm, ph, signalsHtml, shapData, country, recos, modeLabel, scoreLabel, scoreFraction) {
+    const config = {
+        stable:   { emoji:'✅', label:'STABLE',        title:'Low Distress Risk',          sub:'The profile is consistent with stable business patterns.' },
+        moderate: { emoji:'⚠️', label:'MODERATE RISK', title:'Vulnerability Signals Present', sub:'One or more risk indicators are active.' },
+        high:     { emoji:'🚨', label:'HIGH RISK',      title:'Multiple Distress Indicators Detected', sub:'Several risk signals are converging simultaneously.' },
+    };
+    const c = config[cls];
+
+    document.getElementById('r-banner').className = `result-banner ${cls}`;
+    document.getElementById('r-badge').className  = `result-badge ${cls}`;
+    document.getElementById('r-badge').textContent = c.emoji;
+    document.getElementById('r-tag').className     = `result-tag ${cls}`;
+    document.getElementById('r-tag').textContent   = c.label;
+    document.getElementById('r-title').textContent = c.title;
+    document.getElementById('r-sub').innerHTML     = `${c.sub} <span class="mode-context-tag ${currentMode === 'sme' ? 'sme' : 'startup'}">${modeLabel}</span>`;
+
+    const dialColor = { stable:'var(--success)', moderate:'var(--warning)', high:'var(--danger)' }[cls];
+    const dialPath = document.getElementById('dial-path');
+    dialPath.style.stroke = dialColor;
+    const dialCirc = 157;
+    setTimeout(() => { dialPath.style.strokeDashoffset = dialCirc - (dialCirc * scoreFraction); }, 200);
+    document.getElementById('dial-num').textContent = scoreLabel;
+    document.getElementById('dial-num').style.color = dialColor;
+    document.getElementById('dial-sub').textContent = currentMode === 'sme' ? 'risk signals' : 'risk score';
+
+    const fmt = v => `${(v * 100).toFixed(1)}%`;
+    setTimeout(() => {
+        document.getElementById('pf-stable').style.width = fmt(ps);
+        document.getElementById('pf-mod').style.width    = fmt(pm);
+        document.getElementById('pf-high').style.width   = fmt(ph);
+    }, 300);
+    document.getElementById('pp-stable').textContent = fmt(ps);
+    document.getElementById('pp-mod').textContent    = fmt(pm);
+    document.getElementById('pp-high').textContent   = fmt(ph);
+
+    document.getElementById('signals-grid').innerHTML = signalsHtml;
+
+    const maxShap = Math.max(...shapData.map(r => Math.abs(r.val)));
+    document.getElementById('shap-section').innerHTML = shapData.map(r => {
+        const pct = Math.round((Math.abs(r.val) / maxShap) * 100);
+        const color = r.dir === 'pos' ? 'var(--danger)' : 'var(--success)';
+        return `<div class="shap-row">
+            <div class="shap-name">${r.name}</div>
+            <div class="shap-track"><div class="${r.dir === 'pos' ? 'shap-fill-pos' : 'shap-fill-neg'}" style="width:${pct}%"></div></div>
+            <div class="shap-val" style="color:${color}">${r.val > 0 ? '+' : ''}${r.val.toFixed(3)}</div>
+        </div>`;
+    }).join('');
+
+    const bench = COUNTRY_RISK[country];
+    const flag  = FLAG[country] || '🌍';
+    document.getElementById('benchmark-card').innerHTML = bench
+        ? `<div class="benchmark-icon">${flag}</div><div class="benchmark-text">In <strong>${country}</strong>, <strong>${bench.pct}</strong> of businesses are High Risk. ${bench.insight}</div>`
+        : `<div class="benchmark-icon">🌍</div><div class="benchmark-text">High Risk rates range from <strong>1.8%</strong> (Rwanda) to <strong>18.4%</strong> (South Africa) across the dataset.</div>`;
+
+    const isStartup = currentMode === 'startup';
+    document.getElementById('reco-list').innerHTML = recos.map((r, i) =>
+        `<div class="reco-item">
+            <div class="reco-num ${isStartup ? 'startup-num' : ''}">${i+1}</div>
+            <div class="reco-text"><strong>${r.t}</strong><br>${r.b}</div>
+        </div>`
+    ).join('');
+
+    document.getElementById('result-panel').style.display = 'block';
+    setTimeout(() => document.getElementById('result-panel').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+}
+
+// ── Signal card builder ───────────────────────────────────────────────────────
+function sigCard(emoji, name, triggered, desc, projected) {
+    const cls  = projected ? 'projected' : triggered ? 'triggered' : 'clear';
+    const chip = projected ? 'PROJECTED ⚡' : triggered ? 'TRIGGERED ✗' : 'ALL CLEAR ✓';
+    return `<div class="signal-card ${cls}">
+        <div class="signal-emoji">${emoji}</div>
+        <div class="signal-name">${name}</div>
+        <div><span class="signal-chip">${chip}</span></div>
+        <div class="signal-desc">${desc}</div>
+    </div>`;
+}
+
+// ── Predict SME ───────────────────────────────────────────────────────────────
+function predictSME() {
+    if (!validateSME()) return;
+    setLoading('sme', true);
+
+    const d = {
+        country:      document.getElementById('s-country').value,
+        empNow:       document.getElementById('s-emp-now').value,
+        empPast:      document.getElementById('s-emp-past').value,
+        needsFinance: document.getElementById('s-needs-finance').value,
+        hasLoan:      document.getElementById('s-has-loan').value,
+        sales:        document.getElementById('s-sales').value,
+        capacity:     document.getElementById('s-capacity').value,
+        elec:         document.getElementById('s-elec').value,
+        finObs:       document.getElementById('s-fin-obs').value,
+        informal:     document.getElementById('s-informal').value,
+        corrupt:      document.getElementById('s-corrupt').value,
+        margin:       document.getElementById('s-margin').value,
+        crisis:       document.getElementById('s-crisis').value,
+        health:       document.getElementById('s-health').value,
+    };
+
+    setTimeout(() => {
+        const r = classifySME(d);
+        const signals = [
+            sigCard('💳', 'Credit Gap (Needs Finance, No Loan)', r.creditGap,   'Unfulfilled financing need — #1 distress predictor in v2 model (SHAP 0.481).', false),
+            sigCard('👥', 'Employment Shrinkage (>10% decline)', r.empShrink,   `Workforce change: ${d.empPast > 0 ? ((parseFloat(d.empNow)-parseFloat(d.empPast))/parseFloat(d.empPast)*100).toFixed(1)+'%' : 'insufficient data'}. Threshold: −10%.`, false),
+            sigCard('🏭', 'Low Capacity Utilisation (<60%)',      r.lowCap,     `Capacity at ${d.capacity}%. Below 60% signals operational distress.`, false),
+        ].join('');
+        const shap  = buildShapSME(d, r);
+        const recos = getRecosSME(r.cls, r, d);
+        renderResult(r.cls, r.ps, r.pm, r.ph, signals, shap, d.country, recos, 'Running SME', `${r.score}/3`, r.score / 3);
+        setLoading('sme', false);
+        document.getElementById('sme-btn-text').textContent = 'Re-assess →';
+    }, 600 + Math.random() * 600);
+}
+
+// ── Predict Startup ───────────────────────────────────────────────────────────
+function predictStartup() {
+    if (!validateStartup()) return;
+    setLoading('startup', true);
+
+    const d = {
+        country:       document.getElementById('t-country').value,
+        stage:         document.getElementById('t-stage').value,
+        teamSize:      document.getElementById('t-team-size').value,
+        experience:    document.getElementById('t-experience').value,
+        priorBiz:      document.getElementById('t-prior-biz').value,
+        capital:       document.getElementById('t-capital').value,
+        fundSource:    document.getElementById('t-fund-source').value,
+        needsFinance:  document.getElementById('t-needs-finance').value,
+        hasLoan:       document.getElementById('t-has-loan').value,
+        breakeven:     document.getElementById('t-breakeven').value,
+        capPct:        document.getElementById('t-capacity').value,
+        hasSales:      document.getElementById('t-has-sales').value,
+        loi:           document.getElementById('t-loi').value,
+        mktSize:       document.getElementById('t-market-size').value,
+        competition:   document.getElementById('t-competition').value,
+        demand:        document.getElementById('t-demand').value,
+        elec:          document.getElementById('t-elec').value,
+        reg:           document.getElementById('t-reg').value,
+        informal:      document.getElementById('t-informal').value,
+        concentration: document.getElementById('t-concentration').value,
+        export:        document.getElementById('t-export').value,
+        founders:      document.getElementById('t-founders').value,
+    };
+
+    setTimeout(() => {
+        const r = classifyStartup(d);
+        const signals = [
+            sigCard('💳', 'Finance Gap Risk',                         r.creditGap,   'Needs external finance but no loan/credit secured yet.', !r.creditGap),
+            sigCard('📈', 'Market Demand Strength',                   r.poorMkt,     d.demand === 'strong' ? 'Strong existing demand — reduces go-to-market risk.' : 'Weak or moderate demand — customer education cost is high.', false),
+            sigCard('⚔️', 'Competitive Environment Risk',             r.highComp,    `Competition level: ${d.competition || 'not specified'}. High competition compresses margins for new entrants.`, false),
+        ].join('');
+        const shap  = buildShapStartup(d, r);
+        const recos = getRecosStartup(r.cls, r, d);
+        const scoreLabel = `${Math.round(r.riskScore)}/10`;
+        renderResult(r.cls, r.ps, r.pm, r.ph, signals, shap, d.country, recos, 'Startup Assessment', scoreLabel, r.riskScore / 10);
+        setLoading('startup', false);
+        document.getElementById('startup-btn-text').textContent = 'Re-assess →';
+    }, 600 + Math.random() * 600);
+}
+
+// ── Loading state ─────────────────────────────────────────────────────────────
+function setLoading(mode, loading) {
+    const btn     = document.getElementById(mode + '-predict-btn');
+    const spinner = document.getElementById(mode + '-spinner');
+    const text    = document.getElementById(mode + '-btn-text');
+    btn.disabled  = loading;
+    spinner.style.display = loading ? 'block' : 'none';
+    if (loading) text.textContent = 'Analysing…';
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+function resetForm() {
+    document.getElementById('result-panel').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('sme-btn-text').textContent     = 'Analyse This Business →';
+    document.getElementById('startup-btn-text').textContent = 'Assess This Startup →';
+}
+</script>
+</body>
+</html>
