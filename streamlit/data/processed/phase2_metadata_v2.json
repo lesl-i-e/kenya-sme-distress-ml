@@ -1,0 +1,108 @@
+{
+  "VERSION": "v2_leakage_corrected",
+  "BEST_MODEL": "XGBoost (Initial)",
+  "BEST_ROC_AUC": 0.8636201173457585,
+  "BEST_F1_MACRO": 0.6402258100948339,
+  "BEST_F1_HIGH_RISK": 0.2973621103117506,
+  "ALL_MODELS": [
+    {
+      "model": "Logistic Regression",
+      "roc_auc": 0.8431512318820275,
+      "f1_macro": 0.5350549178553722,
+      "f1_high_risk": 0.33211678832116787
+    },
+    {
+      "model": "Random Forest",
+      "roc_auc": 0.8590660832871401,
+      "f1_macro": 0.6032858722184583,
+      "f1_high_risk": 0.36623067776456597
+    },
+    {
+      "model": "XGBoost (Initial)",
+      "roc_auc": 0.8636201173457585,
+      "f1_macro": 0.6402258100948339,
+      "f1_high_risk": 0.2973621103117506
+    },
+    {
+      "model": "XGBoost (Tuned)",
+      "roc_auc": 0.8552566310543632,
+      "f1_macro": 0.6201237807956917,
+      "f1_high_risk": 0.2349869451697128
+    }
+  ],
+  "FEATURE_COUNT": 32,
+  "TRAIN_SIZE": 11750,
+  "TEST_SIZE": 2938,
+  "SMOTE_APPLIED": true,
+  "TOP10_SHAP_FEATURES": [
+    "needs_finance_bin",
+    "has_loan_bin",
+    "broad_sector_encoded",
+    "sales_per_employee",
+    "employees_now",
+    "detailed_sector_encoded",
+    "biggest_obstacle_encoded",
+    "region_encoded",
+    "log_sales",
+    "pct_internal_finance"
+  ],
+  "GEO_RESULTS": [
+    {
+      "country": "Ethiopia",
+      "n": 396,
+      "roc_auc": 0.852834266314447,
+      "f1_macro": 0.5159711946335208,
+      "high_risk_rate": 0.050505050505050504
+    },
+    {
+      "country": "Ghana",
+      "n": 312,
+      "roc_auc": 0.8518002366551425,
+      "f1_macro": 0.6520146520146519,
+      "high_risk_rate": 0.10897435897435898
+    },
+    {
+      "country": "Kenya",
+      "n": 409,
+      "roc_auc": 0.8232892385043291,
+      "f1_macro": 0.6034138580038213,
+      "high_risk_rate": 0.12224938875305623
+    },
+    {
+      "country": "Nigeria",
+      "n": 746,
+      "roc_auc": 0.7914329942025464,
+      "f1_macro": 0.4892169432854711,
+      "high_risk_rate": 0.05361930294906166
+    },
+    {
+      "country": "Rwanda",
+      "n": 164,
+      "roc_auc": 0.8830937218684981,
+      "f1_macro": 0.5850408129268699,
+      "high_risk_rate": 0.018292682926829267
+    },
+    {
+      "country": "South Africa",
+      "n": 412,
+      "roc_auc": 0.8620128554983113,
+      "f1_macro": 0.6973374172550861,
+      "high_risk_rate": 0.18446601941747573
+    },
+    {
+      "country": "Tanzania",
+      "n": 263,
+      "roc_auc": 0.891172491684325,
+      "f1_macro": 0.5944895742500038,
+      "high_risk_rate": 0.045627376425855515
+    },
+    {
+      "country": "Uganda",
+      "n": 236,
+      "roc_auc": 0.8057524910139868,
+      "f1_macro": 0.5625258799171843,
+      "high_risk_rate": 0.13135593220338984
+    }
+  ],
+  "NOTE": "Leakage-corrected. Signal features excluded from model inputs."
+}
