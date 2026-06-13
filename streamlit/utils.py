@@ -10,7 +10,7 @@ import os
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
-DATA_DIR   = os.path.join(BASE_DIR, "data")
+DATA_DIR   = os.path.join(BASE_DIR, "data", "processed")
 
 # ── Class definitions ─────────────────────────────────────────────────────────
 CLASS_NAMES   = ["Stable", "Moderate Risk", "High Risk"]
