@@ -1,4 +1,4 @@
-"""Page 1 — Overview (v2 — leakage-corrected)"""
+"""Page 1 — Overview (v2)"""
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -24,11 +24,11 @@ st.markdown('<div class="section-header">📌 Dataset at a Glance</div>',
             unsafe_allow_html=True)
 
 c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Total Firms",    "14,688",  "8 countries")
-c2.metric("Survey Rounds",  "16",      "2007 – 2025")
-c3.metric("Countries",      "8",       "East & West Africa")
-c4.metric("Best ROC-AUC",   "0.8636",  "XGBoost — genuine prediction")
-c5.metric("Features Used",  "32",      "Leakage-free engineered set")
+c1.metric("Total Firms",    "14,688", "8 countries")
+c2.metric("Survey Rounds",  "16",     "2007 – 2025")
+c3.metric("Countries",      "8",      "East & West Africa")
+c4.metric("Best ROC-AUC",   "0.8636", "XGBoost v2 (genuine)")
+c5.metric("Features Used",  "32",     "Leakage-free set")
 
 st.markdown("---")
 
@@ -40,27 +40,24 @@ col_chart, col_text = st.columns([1.3, 1])
 
 with col_chart:
     try:
-        df = load_data()
+        df     = load_data()
         counts = df["distress_level"].value_counts().sort_index()
         labels = [CLASS_NAMES[i] for i in counts.index]
         colors = [CLASS_COLOURS[l] for l in labels]
 
         fig, axes = plt.subplots(1, 2, figsize=(9, 3.5))
 
-        bars = axes[0].bar(labels, counts.values, color=colors,
-                           edgecolor="none", width=0.55)
+        bars = axes[0].bar(labels, counts.values, color=colors, edgecolor="none", width=0.55)
         axes[0].set_title("Count by Risk Class", fontsize=11)
         axes[0].set_ylabel("Number of Firms")
         for bar, v in zip(bars, counts.values):
             axes[0].text(bar.get_x() + bar.get_width()/2, v + 50,
-                         f"{v:,}\n({v/len(df)*100:.1f}%)",
-                         ha="center", fontsize=8)
-        for sp in ["top", "right"]: axes[0].spines[sp].set_visible(False)
+                         f"{v:,}\n({v/len(df)*100:.1f}%)", ha="center", fontsize=8)
+        for sp in ["top","right"]: axes[0].spines[sp].set_visible(False)
 
         axes[1].pie(counts.values, labels=labels, colors=colors,
-                    autopct="%1.1f%%", startangle=140,
-                    pctdistance=0.78,
-                    wedgeprops={"edgecolor": "white", "linewidth": 1.5})
+                    autopct="%1.1f%%", startangle=140, pctdistance=0.78,
+                    wedgeprops={"edgecolor":"white","linewidth":1.5})
         axes[1].set_title("Proportional Share", fontsize=11)
         plt.tight_layout()
         st.pyplot(fig)
@@ -73,16 +70,14 @@ with col_text:
     **Three risk classes:**
 
     🔵 **Stable (44.1%)** — No significant distress signals.
-    The business shows healthy employment, adequate access to
-    finance, and good operational capacity.
+    Healthy employment, adequate finance access, and good capacity.
 
     🟠 **Moderate Risk (46.9%)** — One distress signal present.
-    Typically credit-constrained but still operating. Requires
-    monitoring and possibly targeted support.
+    Typically credit-constrained but still operating. Needs monitoring.
 
     🔴 **High Risk (9.1%)** — Two or more distress signals active
-    simultaneously. Strong predictor of business decline or exit.
-    Immediate attention required before funding.
+    simultaneously. Strong predictor of business decline. Immediate
+    attention required before any funding.
 
     **The three distress signals (used for labelling only):**
     1. Credit constrained — needs financing but cannot access it
@@ -99,10 +94,10 @@ st.markdown('<div class="section-header">🌍 Country Coverage</div>',
 try:
     df = load_data()
     country_stats = df.groupby("country").agg(
-        Firms=("at_risk", "count"),
+        Firms=("at_risk","count"),
         High_Risk_Pct=("at_risk", lambda x: f"{x.mean()*100:.1f}%"),
     ).reset_index()
-    country_stats.columns = ["Country", "Firms in Dataset", "High Risk Rate"]
+    country_stats.columns = ["Country","Firms in Dataset","High Risk Rate"]
     st.dataframe(country_stats, use_container_width=True, hide_index=True)
 except Exception as e:
     st.info(f"Country table unavailable: {e}")
@@ -115,37 +110,37 @@ st.markdown('<div class="section-header">🏆 Model Performance Summary</div>',
 
 try:
     results = load_results()
-    def highlight(row):
-        if "initial" in str(row.get("model", "")).lower() or "xgboost" in str(row.get("model", "")).lower():
-            return ["background-color:#E3F2FD"] * len(row)
+    # Highlight the best model row with readable dark text
+    def highlight_best(row):
+        model_col = row.get("model", row.get("Model", ""))
+        if "xgboost" in str(model_col).lower() and "initial" in str(model_col).lower():
+            return ["background-color:#DBEAFE;color:#1e3a8a;font-weight:bold"] * len(row)
         return [""] * len(row)
     st.dataframe(
-        results.style.apply(highlight, axis=1),
+        results.style.apply(highlight_best, axis=1),
         use_container_width=True, hide_index=True,
     )
-    st.caption("★ XGBoost (Initial) achieves the best ROC-AUC (0.8636) and is used in the Business Predictor.")
+    st.caption("★ XGBoost (Initial) v2 — ROC-AUC 0.8636 — is deployed in the Business Predictor.")
 except Exception as e:
     st.info(f"Results unavailable: {e}")
 
 st.markdown("---")
 
 # ── Methodology note ──────────────────────────────────────────────────────────
-st.markdown('<div class="section-header">🔬 Methodology Note — Leakage-Corrected Model</div>',
+st.markdown('<div class="section-header">🔬 Methodology Note — Leakage-Corrected Model (v2)</div>',
             unsafe_allow_html=True)
 st.info("""
-**On model performance (ROC-AUC 0.8636):**
-An earlier version of this model achieved near-perfect scores (ROC-AUC 1.0000) because the
-three distress signal features — credit constraint, employment shrinkage, and low capacity
-utilisation — were used both to construct the target variable *and* as model inputs.
-That is circular: the model was reconstructing its own labelling formula, not learning
-genuine predictive relationships.
+**Why ROC-AUC is 0.8636 and not 1.0000:**
+An earlier model version achieved near-perfect scores because the three distress signal
+features were used both to build the target labels *and* as model inputs — circular
+reconstruction, not genuine prediction.
 
-**This version corrects that.** The three signal features are used only to build the
-target labels and are then excluded from the model's input set. Nine new independent
-features replace them: labour productivity, finance double stress, infrastructure burden,
-obstacle count, firm age, size-age interaction, export orientation, and management quality.
+**This v2 model corrects that.** Signal features are excluded from all model inputs.
+Nine independent features replace them: labour productivity (sales per employee),
+finance double stress, infrastructure burden, obstacle count, firm age, size-age
+interaction, export orientation, and management quality.
 
-The resulting ROC-AUC of **0.8636** represents genuine cross-country predictive validity
-across 14,688 firms from 8 African economies.
+ROC-AUC **0.8636** across 14,688 firms and 8 African countries is the honest,
+publishable number.
 """)
 st.caption("Data: World Bank Enterprise Surveys 2007–2025 · JKUAT Final Year Project 2026")

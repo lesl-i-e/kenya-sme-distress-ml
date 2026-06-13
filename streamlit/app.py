@@ -1,4 +1,5 @@
 import streamlit as st
+import importlib.util, os, sys
 
 st.set_page_config(
     page_title="SME Distress Predictor — East Africa",
@@ -40,6 +41,8 @@ st.markdown("""
         border-radius:8px; padding:14px; margin:6px 0;
         border:1px solid #E2E8F0;
     }
+    /* Fix dataframe highlight text visibility */
+    .dataframe td { color: #1f2937 !important; }
     #MainMenu { visibility:hidden; }
     footer     { visibility:hidden; }
 </style>
@@ -50,16 +53,16 @@ st.sidebar.markdown("## 📊 SME Distress Predictor")
 st.sidebar.markdown("**East African Business Risk Assessment**")
 st.sidebar.markdown("---")
 
-pages = {
-    "🏠  Overview":                "pages/1_Overview.py",
-    "🔍  Business Predictor":      "pages/2_Predictor.py",
-    "📈  Model Performance":       "pages/3_Model_Performance.py",
-    "🧠  Feature Importance":      "pages/4_SHAP.py",
-    "🌍  Geographic Analysis":     "pages/5_Geography.py",
+PAGES = {
+    "🏠  Overview":            "pages/1_Overview.py",
+    "🔍  Business Predictor":  "pages/2_Predictor.py",
+    "📈  Model Performance":   "pages/3_Model_Perfomance.py",
+    "🧠  Feature Importance":  "pages/4_SHAP.py",
+    "🌍  Geographic Analysis": "pages/5_Geography.py",
 }
 
 st.sidebar.markdown("### Navigate")
-selection = st.sidebar.radio("", list(pages.keys()), label_visibility="collapsed")
+selection = st.sidebar.radio("", list(PAGES.keys()), label_visibility="collapsed")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
@@ -78,10 +81,11 @@ World Bank Enterprise Surveys
 """)
 st.sidebar.caption("BIT 2303 / SDS 2406 · 2026")
 
-# ── Route to selected page ────────────────────────────────────────────────────
-import importlib.util, os
+# ── Route — resolve path relative to this file so it works on Streamlit Cloud ─
+base = os.path.dirname(os.path.abspath(__file__))
+page_path = os.path.join(base, PAGES[selection])
 
-page_file = pages[selection]
-spec = importlib.util.spec_from_file_location("page", page_file)
+spec = importlib.util.spec_from_file_location("page", page_path)
 mod  = importlib.util.module_from_spec(spec)
+sys.modules["page"] = mod
 spec.loader.exec_module(mod)
